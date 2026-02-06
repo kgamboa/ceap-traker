@@ -4,11 +4,22 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./db');
 
+
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname)));
+
+// Serve index.html at root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Ejemplo: tabla "items" (id serial, name text)
 app.get('/api/items', async (req, res) => {
@@ -30,6 +41,7 @@ app.post('/api/items', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
