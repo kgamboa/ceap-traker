@@ -12,7 +12,7 @@ async function fetchItems() {
     if (Array.isArray(items)) {
         items.forEach(item => {
             const li = document.createElement('li');
-            li.textContent = item.name;
+            li.innerHTML = `<b>${item.plantel || ''}</b> | Ciclo: ${item.ciclo_ceap || ''} | Fase: ${item.fase || ''} | Estatus: ${item.estatus || ''} | Observaciones: ${item.observaciones || ''} | Estimada: ${item.fecha_estimada || ''} | Concluido: ${item.fecha_concluido || ''}`;
             list.appendChild(li);
         });
     } else {
@@ -24,15 +24,21 @@ async function fetchItems() {
 
 async function addItem(e) {
     e.preventDefault();
-    const input = document.getElementById('item-input');
-    const name = input.value.trim();
-    if (!name) return;
+    const plantel = document.getElementById('plantel-input').value.trim();
+    const ciclo_ceap = document.getElementById('ciclo-input').value.trim();
+    const fase = document.getElementById('fase-input').value.trim();
+    const estatus = document.getElementById('estatus-input').value.trim();
+    const observaciones = document.getElementById('observaciones-input').value.trim();
+    const fecha_estimada = document.getElementById('fecha-estimada-input').value;
+    const fecha_concluido = document.getElementById('fecha-concluido-input').value;
+
+    if (!plantel) return;
     await fetch('/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ plantel, ciclo_ceap, fase, estatus, observaciones, fecha_estimada, fecha_concluido })
     });
-    input.value = '';
+    document.getElementById('add-item-form').reset();
     fetchItems();
 }
 

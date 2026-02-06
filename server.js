@@ -15,9 +15,15 @@ async function ensureTables() {
     try {
         await db.query(`CREATE TABLE IF NOT EXISTS items (
             id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL
+            plantel TEXT NOT NULL,
+            ciclo_ceap TEXT,
+            fase TEXT,
+            estatus TEXT,
+            observaciones TEXT,
+            fecha_estimada DATE,
+            fecha_concluido DATE
         );`);
-        console.log('Table "items" is ready.');
+        console.log('Table "items" (actualizada) is ready.');
     } catch (err) {
         console.error('Error creating table:', err);
     }
@@ -37,6 +43,8 @@ app.get('/', (req, res) => {
 });
 
 // Ejemplo: tabla "items" (id serial, name text)
+
+// Obtener todos los items
 app.get('/api/items', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM items ORDER BY id DESC');
@@ -46,11 +54,16 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
+// Crear un nuevo item
 app.post('/api/items', async (req, res) => {
-    const { name } = req.body;
-    if (!name) return res.status(400).json({ error: 'Name required' });
+    const { plantel, ciclo_ceap, fase, estatus, observaciones, fecha_estimada, fecha_concluido } = req.body;
+    if (!plantel) return res.status(400).json({ error: 'Plantel requerido' });
     try {
-        const result = await db.query('INSERT INTO items(name) VALUES($1) RETURNING *', [name]);
+        const result = await db.query(
+            `INSERT INTO items (plantel, ciclo_ceap, fase, estatus, observaciones, fecha_estimada, fecha_concluido)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [plantel, ciclo_ceap, fase, estatus, observaciones, fecha_estimada, fecha_concluido]
+        );
         res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
