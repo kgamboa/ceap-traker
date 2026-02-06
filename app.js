@@ -1,14 +1,25 @@
 // Este script conecta el frontend con el backend para mostrar y agregar items
 async function fetchItems() {
     const res = await fetch('/api/items');
-    const items = await res.json();
+    let items;
+    try {
+        items = await res.json();
+    } catch (e) {
+        items = [];
+    }
     const list = document.getElementById('items-list');
     list.innerHTML = '';
-    items.forEach(item => {
+    if (Array.isArray(items)) {
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item.name;
+            list.appendChild(li);
+        });
+    } else {
         const li = document.createElement('li');
-        li.textContent = item.name;
+        li.textContent = 'Error cargando items';
         list.appendChild(li);
-    });
+    }
 }
 
 async function addItem(e) {
