@@ -6,8 +6,23 @@ const db = require('./db');
 
 
 const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Ensure 'items' table exists on startup
+async function ensureTables() {
+    try {
+        await db.query(`CREATE TABLE IF NOT EXISTS items (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL
+        );`);
+        console.log('Table "items" is ready.');
+    } catch (err) {
+        console.error('Error creating table:', err);
+    }
+}
+ensureTables();
 
 
 app.use(cors());
