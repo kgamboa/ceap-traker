@@ -37,7 +37,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       // Crear mapa de CEAPs más recientes por plantel
       const map = {};
       dashRes.data.ceaps.forEach(ceap => {
-        if (!map[ceap.plantel_id]) {
+        if (!map[ceap.plantel_id] || new Date(ceap.created_at) > new Date(map[ceap.plantel_id].created_at)) {
           map[ceap.plantel_id] = ceap;
         }
       });

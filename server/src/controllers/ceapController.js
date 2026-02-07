@@ -47,10 +47,12 @@ exports.getDashboardData = async (req, res) => {
     // Calcular estadísticas globales
     let totalFases = 0;
     let totalFasesCompletadas = 0;
+    const planteleIds = new Set();
     
     ceaps.forEach(ceap => {
       totalFases += ceap.total_fases;
       totalFasesCompletadas += ceap.fases_completadas;
+      planteleIds.add(ceap.plantel_id);
     });
     
     const porcentajeGlobal = totalFases > 0 ? Math.round((totalFasesCompletadas / totalFases) * 100) : 0;
@@ -58,7 +60,7 @@ exports.getDashboardData = async (req, res) => {
     res.json({
       ceaps,
       estadisticas: {
-        totalPlanteles: ceaps.length,
+        totalPlanteles: planteleIds.size,
         totalFases,
         totalFasesCompletadas,
         porcentajeGlobal
@@ -79,7 +81,10 @@ exports.createCEAP = async (req, res) => {
     // Inicializar todas las fases para este CEAP
     await CEaPFaseModel.initializeFasesForCEAP(ceap.id);
     
-    res.status(201).json(ceap);
+    // Actualizar el porcentaje de avance inicial
+    const updatedCeap = await CEaPModel.updateProgress(ceap.id);
+    
+    res.status(201).json(updatedCeap);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al crear CEAP' });
