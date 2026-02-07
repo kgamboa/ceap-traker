@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ceapService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle } from 'lucide-react';
@@ -13,17 +13,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   const [editingFaseId, setEditingFaseId] = useState(null);
   const [editData, setEditData] = useState({});
 
-  useEffect(() => {
-    fetchCeaps();
-  }, [plantel.id]);
-
-  useEffect(() => {
-    if (selectedCeap) {
-      fetchFases(selectedCeap.id);
-    }
-  }, [selectedCeap]);
-
-  const fetchCeaps = async () => {
+  const fetchCeaps = useCallback(async () => {
     try {
       setLoading(true);
       const response = await ceapService.getByPlantel(plantel.id);
@@ -36,16 +26,26 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [plantel.id]);
 
-  const fetchFases = async (ceapId) => {
+  const fetchFases = useCallback(async (ceapId) => {
     try {
       const response = await ceapService.getFases(ceapId);
       setFases(response.data);
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCeaps();
+  }, [fetchCeaps]);
+
+  useEffect(() => {
+    if (selectedCeap) {
+      fetchFases(selectedCeap.id);
+    }
+  }, [selectedCeap, fetchFases]);
 
   const handleEditFase = (faseId, currentData) => {
     setEditingFaseId(faseId);
