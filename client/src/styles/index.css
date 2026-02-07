@@ -124,6 +124,15 @@ code {
   background-color: #059669;
 }
 
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
 .btn-sm {
   padding: 0.375rem 0.75rem;
   font-size: 0.875rem;

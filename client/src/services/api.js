@@ -23,7 +23,8 @@ export const ceapService = {
   getByPlantel: (plantelId) => api.get(`/ceaps/plantel/${plantelId}`),
   getFases: (ceapId) => api.get(`/ceaps/${ceapId}/fases`),
   create: (datos) => api.post('/ceaps', datos),
-  updateFase: (ceapFaseId, datos) => api.put(`/ceaps/fases/${ceapFaseId}`, datos)
+  updateFase: (ceapFaseId, datos) => api.put(`/ceaps/fases/${ceapFaseId}`, datos),
+  delete: (ceapId) => api.delete(`/ceaps/${ceapId}`)
 };
 
 // Servicios de Exportación

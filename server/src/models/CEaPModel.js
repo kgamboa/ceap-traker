@@ -78,6 +78,18 @@ class CEaPModel {
     );
     return result.rows[0];
   }
-}
 
-module.exports = CEaPModel;
+  static async delete(ceapId) {
+    // Primero eliminar las fases asociadas
+    await pool.query(
+      'DELETE FROM ceap_fases WHERE ceap_id = $1',
+      [ceapId]
+    );
+
+    // Luego eliminar el CEAP
+    const result = await pool.query(
+      'DELETE FROM ceaps WHERE id = $1 RETURNING *',
+      [ceapId]
+    );
+    return result.rows[0];
+  }

@@ -85,3 +85,19 @@ exports.createCEAP = async (req, res) => {
     res.status(500).json({ error: 'Error al crear CEAP' });
   }
 };
+exports.deleteCEAP = async (req, res) => {
+  try {
+    const { ceapId } = req.params;
+    
+    const ceap = await CEaPModel.delete(ceapId);
+    
+    if (!ceap) {
+      return res.status(404).json({ error: 'CEAP no encontrado' });
+    }
+    
+    res.json({ message: 'CEAP eliminado correctamente', ceap });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar CEAP' });
+  }
+};

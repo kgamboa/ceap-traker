@@ -8,5 +8,4 @@ router.post('/', ceapController.createCEAP);
 router.get('/plantel/:plantelId', ceapController.getCEAPByPlantel);
 router.get('/:ceapId/fases', ceapController.getCEAPFases);
 router.put('/fases/:ceapFaseId', ceapController.updateCEAPFase);
-
-module.exports = router;
+router.delete('/:ceapId', ceapController.deleteCEAP);

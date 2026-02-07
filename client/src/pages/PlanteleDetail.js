@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
-import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X } from 'lucide-react';
+import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
 import '../styles/PlanteleDetail.css';
 
 export const PlanteleDetail = ({ plantel, onBack }) => {
@@ -129,6 +129,28 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     } catch (err) {
       console.error(err);
       alert('Error al crear el CEAP');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteCeap = async () => {
+    if (!selectedCeap) return;
+    
+    const confirmed = window.confirm(
+      `¿Está seguro de que desea eliminar el CEAP ${selectedCeap.ciclo_inicio}-${selectedCeap.ciclo_fin}? Esta acción no se puede deshacer.`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      setSaving(true);
+      await ceapService.delete(selectedCeap.id);
+      await fetchCeaps();
+      alert('CEAP eliminado correctamente');
+    } catch (err) {
+      console.error(err);
+      alert('Error al eliminar el CEAP');
     } finally {
       setSaving(false);
     }
@@ -276,12 +298,21 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                 ))}
               </select>
             </div>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowNewCeapModal(true)}
-            >
-              <Plus size={18} /> Nuevo CEAP
-            </button>
+            <div className="ceap-selector-buttons">
+              <button 
+                className="btn btn-primary"
+                onClick={() => setShowNewCeapModal(true)}
+              >
+                <Plus size={18} /> Nuevo CEAP
+              </button>
+              <button 
+                className="btn btn-danger"
+                onClick={handleDeleteCeap}
+                disabled={saving}
+              >
+                <Trash2 size={18} /> Eliminar
+              </button>
+            </div>
           </div>
 
           {selectedCeap && (
