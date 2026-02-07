@@ -9,3 +9,5 @@ router.get('/plantel/:plantelId', ceapController.getCEAPByPlantel);
 router.get('/:ceapId/fases', ceapController.getCEAPFases);
 router.put('/fases/:ceapFaseId', ceapController.updateCEAPFase);
 router.delete('/:ceapId', ceapController.deleteCEAP);
+
+module.exports = router;
