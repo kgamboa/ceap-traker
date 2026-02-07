@@ -1,72 +1,74 @@
 -- Script para insertar datos de ejemplo para testing
 
--- Insertar 25 planteles de ejemplo (ciudades principales de Guanajuato)
+-- Insertar 25 planteles con datos reales de DGETI Guanajuato
 INSERT INTO planteles (nombre, codigo, estado, municipio, director_email, director_nombre, telefono) VALUES
-  ('CECYTEG Acámbaro', 'P001', 'Guanajuato', 'Acámbaro', 'director1@dgeti.gto.edu.mx', 'Lic. Juan García', '4131234567'),
-  ('CECYTEG Apaseo el Alto', 'P002', 'Guanajuato', 'Apaseo el Alto', 'director2@dgeti.gto.edu.mx', 'Lic. María López', '4141234567'),
-  ('CECYTEG Celaya', 'P003', 'Guanajuato', 'Celaya', 'director3@dgeti.gto.edu.mx', 'Lic. Carlos Rodríguez', '4611234567'),
-  ('CECYTEG Cortázar', 'P004', 'Guanajuato', 'Cortázar', 'director4@dgeti.gto.edu.mx', 'Lic. Ana Martínez', '4421234567'),
-  ('CECYTEG Dolores Hidalgo', 'P005', 'Guanajuato', 'Dolores Hidalgo', 'director5@dgeti.gto.edu.mx', 'Lic. Pedro González', '4181234567'),
-  ('CECYTEG Guanajuato', 'P006', 'Guanajuato', 'Guanajuato', 'director6@dgeti.gto.edu.mx', 'Lic. Laura Sánchez', '4731234567'),
-  ('CECYTEG Irapuato', 'P007', 'Guanajuato', 'Irapuato', 'director7@dgeti.gto.edu.mx', 'Lic. Roberto Flores', '4621234567'),
-  ('CECYTEG Juventino Rosas', 'P008', 'Guanajuato', 'Juventino Rosas', 'director8@dgeti.gto.edu.mx', 'Lic. Sofía Torres', '4421234568'),
-  ('CECYTEG León', 'P009', 'Guanajuato', 'León', 'director9@dgeti.gto.edu.mx', 'Lic. David Ruiz', '4771234567'),
-  ('CECYTEG Moroleón', 'P010', 'Guanajuato', 'Moroleón', 'director10@dgeti.gto.edu.mx', 'Lic. Patricia Mendoza', '4441234567'),
-  ('CECYTEG Pénjamo', 'P011', 'Guanajuato', 'Pénjamo', 'director11@dgeti.gto.edu.mx', 'Lic. Francisco Vega', '4641234567'),
-  ('CECYTEG Querétaro', 'P012', 'Guanajuato', 'San Luis de la Paz', 'director12@dgeti.gto.edu.mx', 'Lic. Gabriela Romero', '4881234567'),
-  ('CECYTEG Salamanca', 'P013', 'Guanajuato', 'Salamanca', 'director13@dgeti.gto.edu.mx', 'Lic. Miguel Herrera', '4641234568'),
-  ('CECYTEG San Felipe', 'P014', 'Guanajuato', 'San Felipe', 'director14@dgeti.gto.edu.mx', 'Lic. Elena Díaz', '4791234567'),
-  ('CECYTEG San Luis de la Paz', 'P015', 'Guanajuato', 'San Luis de la Paz', 'director15@dgeti.gto.edu.mx', 'Lic. Gustavo Herrera', '4881234568'),
-  ('CECYTEG Santa Catarina', 'P016', 'Guanajuato', 'Santa Catarina', 'director16@dgeti.gto.edu.mx', 'Lic. Beatriz García', '4651234567'),
-  ('CECYTEG Silao', 'P017', 'Guanajuato', 'Silao', 'director17@dgeti.gto.edu.mx', 'Lic. Raúl López', '4721234567'),
-  ('CECYTEG Tarimoro', 'P018', 'Guanajuato', 'Tarimoro', 'director18@dgeti.gto.edu.mx', 'Lic. Verónica Sánchez', '4591234567'),
-  ('CECYTEG Tejerizo', 'P019', 'Guanajuato', 'Tejerizo', 'director19@dgeti.gto.edu.mx', 'Lic. Andrés Campos', '4651234568'),
-  ('CECYTEG Tolimán', 'P020', 'Guanajuato', 'Tolimán', 'director20@dgeti.gto.edu.mx', 'Lic. Irene Núñez', '4181234568'),
-  ('CECYTEG Uriangato', 'P021', 'Guanajuato', 'Uriangato', 'director21@dgeti.gto.edu.mx', 'Lic. Javier López', '4451234567'),
-  ('CECYTEG Valle de Santiago', 'P022', 'Guanajuato', 'Valle de Santiago', 'director22@dgeti.gto.edu.mx', 'Lic. Claudia Reyes', '4661234567'),
-  ('CECYTEG Villagrán', 'P023', 'Guanajuato', 'Villagrán', 'director23@dgeti.gto.edu.mx', 'Lic. Ernesto Díaz', '4611234568'),
-  ('CECYTEG Xichú', 'P024', 'Guanajuato', 'Xichú', 'director24@dgeti.gto.edu.mx', 'Lic. Patricia Flores', '4131234568'),
-  ('CECYTEG Yuriria', 'P025', 'Guanajuato', 'Yuriria', 'director25@dgeti.gto.edu.mx', 'Lic. Fernando García', '4521234567');
+  ('CETIS No. 21', 'CF021', 'Guanajuato', 'León', 'cetis21.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 21', ''),
+  ('CETIS No. 62', 'CE062', 'Guanajuato', 'Salamanca', 'cetis62.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 62', ''),
+  ('CETIS No. 77', 'CE077', 'Guanajuato', 'León', 'cetis77.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 77', ''),
+  ('CETIS No. 83', 'CE083', 'Guanajuato', 'Guanajuato', 'cetis83.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 83', ''),
+  ('CETIS No. 115', 'CE115', 'Guanajuato', 'Celaya', 'cetis115.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 115', ''),
+  ('CETIS No. 139', 'CE139', 'Guanajuato', 'Silao', 'cetis139.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 139', ''),
+  ('CETIS No. 149', 'CE149', 'Guanajuato', 'Valle de Santiago', 'cetis149.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 149', ''),
+  ('CETIS No. 150', 'CE150', 'Guanajuato', 'Apaseo el Alto', 'cetis150.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 150', ''),
+  ('CETIS No. 160', 'CE160', 'Guanajuato', 'Jaral del Progreso', 'cetis160.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 160', ''),
+  ('CBTIS No. 60', 'CB060', 'Guanajuato', 'San Miguel de Allende', 'cbtis60.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 60', ''),
+  ('CBTIS No. 65', 'CB065', 'Guanajuato', 'Irapuato', 'cbtis65.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 65', ''),
+  ('CBTIS No. 75', 'CB075', 'Guanajuato', 'Dolores Hidalgo', 'cbtis75.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 75', ''),
+  ('CBTIS No. 139', 'CB139', 'Guanajuato', 'San Francisco del Rincón', 'cbtis139.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 139', ''),
+  ('CBTIS No. 147', 'CB147', 'Guanajuato', 'Acámbaro', 'cbtis147.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 147', ''),
+  ('CBTIS No. 148', 'CB148', 'Guanajuato', 'San Felipe', 'cbtis148.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 148', ''),
+  ('CBTIS No. 171', 'CB171', 'Guanajuato', 'Abasolo', 'cbtis171.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 171', ''),
+  ('CBTIS No. 172', 'CB172', 'Guanajuato', 'Cortázar', 'cbtis172.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 172', ''),
+  ('CBTIS No. 173', 'CB173', 'Guanajuato', 'Guanajuato', 'cbtis173.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 173', ''),
+  ('CBTIS No. 174', 'CB174', 'Guanajuato', 'Manuel Doblado', 'cbtis174.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 174', ''),
+  ('CBTIS No. 198', 'CB198', 'Guanajuato', 'Celaya', 'cbtis198.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 198', ''),
+  ('CBTIS No. 217', 'CB217', 'Guanajuato', 'Uriangato', 'cbtis217.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 217', ''),
+  ('CBTIS No. 225', 'CB225', 'Guanajuato', 'León', 'cbtis225.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 225', ''),
+  ('CBTIS No. 238', 'CB238', 'Guanajuato', 'Juventino Rosas', 'cbtis238.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 238', ''),
+  ('CBTIS No. 255', 'CB255', 'Guanajuato', 'Tarimoro', 'cbtis255.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 255', ''),
+  ('CBTIS No. 292', 'CB292', 'Guanajuato', 'San Luis de la Paz', 'cbtis292.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 292', '');
 
--- Insertar CEaPs para cada plantel (ciclos 2024-2026)
+-- Insertar CEaPs para cada plantel (ciclos 2024-2026 y 2025-2027)
 WITH plantel_ids AS (
   SELECT id FROM planteles ORDER BY nombre LIMIT 25
 )
 INSERT INTO ceaps (plantel_id, ciclo_inicio, ciclo_fin)
-SELECT id, 2024, 2026 FROM plantel_ids;
+SELECT id, 2024, 2026 FROM plantel_ids
+UNION ALL
+SELECT id, 2025, 2027 FROM plantel_ids;
 
 -- Inicializar fases para cada CEaP
 WITH ceap_list AS (
-  SELECT c.id as ceap_id FROM ceaps c
+  SELECT id FROM ceaps
 ),
 fase_list AS (
   SELECT id FROM fases ORDER BY numero_orden
 )
 INSERT INTO ceap_fases (ceap_id, fase_id, estado)
-SELECT DISTINCT ceap_list.ceap_id, fase_list.id, 'no_iniciado'
+SELECT DISTINCT ceap_list.id, fase_list.id, 'no_iniciado'
 FROM ceap_list, fase_list
 ON CONFLICT (ceap_id, fase_id) DO NOTHING;
 
--- Actualizar algunos registros con datos de ejemplo
+-- Actualizar algunos registros con datos de ejemplo realistas
 UPDATE ceap_fases
 SET estado = 'completado', 
     completado = true,
     fecha_conclusión = CURRENT_DATE - INTERVAL '30 days'
 WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 1)
-LIMIT 10;
+LIMIT 20;
 
 UPDATE ceap_fases
 SET estado = 'en_progreso', 
     fecha_estimada = CURRENT_DATE + INTERVAL '30 days'
 WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 2)
-LIMIT 12;
+LIMIT 25;
 
 UPDATE ceap_fases
 SET estado = 'completado', 
     completado = true,
     fecha_conclusión = CURRENT_DATE - INTERVAL '10 days'
 WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 3)
-LIMIT 8;
+LIMIT 18;
 
 -- Actualizar porcentajes de avance
 UPDATE ceaps c
