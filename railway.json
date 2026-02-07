@@ -6,5 +6,8 @@
   "deploy": {
     "startCommand": "npm start",
     "restartPolicyMaxRetries": 10
-  }
+  },
+  "plugins": [
+    "postgresql"
+  ]
 }

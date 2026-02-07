@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Sistema de seguimiento del Centro de Enseñanza y Aprendizaje Práctico en DGETI Guanajuato",
   "scripts": {
-    "postinstall": "cd server && npm install && cd ../client && npm install",
+    "postinstall": "cd server && npm install && cd ../client && npm install && npm run build",
     "start": "cd server && npm start",
     "server": "cd server && npm start",
     "client": "cd client && npm start",
+    "build": "cd client && npm run build",
     "dev": "cd server && npm run dev",
     "migrate": "cd server && npm run migrate"
   }

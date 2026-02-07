@@ -2,7 +2,7 @@
 
 Un sistema integral para el seguimiento de la creación y actualización del Centro de Enseñanza y Aprendizaje Práctico (CEaP) en los 25 planteles de DGETI Guanajuato.
 
-## Características
+## 🎯 Características
 
 - **Dashboard Intuitivo**: Visualiza el estatus de todos los CEaP en tiempo real
 - **Seguimiento de 7 Fases**: Convocatoria, Asambleas, Actas, Acta Protocolizada, Registro Público, SAT, Cuenta Bancaria
@@ -10,6 +10,320 @@ Un sistema integral para el seguimiento de la creación y actualización del Cen
 - **Cálculo Automático**: Porcentaje de avance global y por plantel
 - **Exportación de Datos**: Descarga reportes en CSV y Excel
 - **Ciclos CEaP**: Soporte para ciclos de 2 años (2024-2026, 2025-2027, etc.)
+- **PostgreSQL**: Base de datos robusta y escalable
+- **Interfaz Moderna**: Diseño intuitivo y responsive
+
+## 🚀 Inicio Rápido (Railway)
+
+### Opción 1: Deploy Automático desde GitHub
+
+1. **Sube el código a GitHub**
+```bash
+git push origin main
+```
+
+2. **Conecta Railway**
+   - Ve a https://railway.app
+   - Click "New Project" → "Deploy from GitHub"
+   - Selecciona `ceap-tracker`
+
+3. **Railway automáticamente**:
+   - ✅ Instala dependencias (server + client)
+   - ✅ Compila el cliente React
+   - ✅ Crea PostgreSQL
+   - ✅ Inicia el servidor
+   - ✅ Sirve el frontend en `/`
+
+4. **Primera vez: Ejecutar migraciones**
+```bash
+railway run npm run migrate
+```
+
+5. **¡Listo!** Abre tu URL de Railway → Deberías ver el dashboard
+
+### Opción 2: Desarrollo Local
+
+```bash
+# Clonar y instalar
+npm run install-all
+
+# Crear BD local
+createdb ceap_tracker
+
+# Variables de entorno (server/.env)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=tu_contraseña
+DB_NAME=ceap_tracker
+PORT=5000
+NODE_ENV=development
+
+# Ejecutar migraciones
+npm run migrate
+
+# Iniciar en desarrollo (dos terminales)
+# Terminal 1:
+cd server && npm run dev
+
+# Terminal 2:
+cd client && npm start
+```
+
+Abre http://localhost:3000
+
+---
+
+## 📋 Estructura del Proyecto
+
+```
+ceap-tracker/
+├── server/                 # Backend Node.js + Express
+│   ├── src/
+│   │   ├── server.js       # Sirve API + frontend
+│   │   ├── routes/         # Rutas API
+│   │   ├── controllers/    # Lógica de negocio
+│   │   ├── models/         # Acceso a datos
+│   │   ├── services/       # Servicios (exportación)
+│   │   └── config/         # Configuración BD
+│   ├── migrations/         # Scripts SQL
+│   └── package.json
+├── client/                 # Frontend React
+│   ├── src/
+│   │   ├── pages/          # Dashboard, Detalle
+│   │   ├── components/     # Componentes reutilizables
+│   │   ├── services/       # Cliente HTTP
+│   │   ├── styles/         # CSS
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── public/
+│   └── package.json
+├── package.json            # Orquestación
+├── railway.json            # Configuración Railway
+├── Procfile               # Definición de procesos
+├── README.md              # Este archivo
+├── DEPLOY_QUICK.md        # Guía de deploy
+└── USAGE.md              # Guía de uso
+```
+
+---
+
+## 🗄️ Base de Datos
+
+### Tablas Principales
+
+| Tabla | Descripción |
+|-------|-----------|
+| **planteles** | 25 planteles DGETI Guanajuato |
+| **ceaps** | CEaPs por plantel (2024-2026, 2025-2027, etc.) |
+| **fases** | 7 fases del proceso CEaP |
+| **ceap_fases** | Estado de cada fase |
+| **ceap_fases_historial** | Auditoría de cambios |
+
+### En Railway
+
+PostgreSQL se **crea automáticamente**:
+- Variable: `DATABASE_URL`
+- Acceso automático desde el código
+- Backups automáticos
+- Escalable y seguro
+
+---
+
+## 📡 API REST
+
+### Planteles
+```
+GET    /api/planteles          # Listar todos
+GET    /api/planteles/:id      # Obtener uno
+POST   /api/planteles          # Crear
+PUT    /api/planteles/:id      # Actualizar
+```
+
+### CEaP
+```
+GET    /api/ceaps/dashboard           # Dashboard
+GET    /api/ceaps/plantel/:id         # Por plantel
+GET    /api/ceaps/:ceapId/fases       # Fases
+POST   /api/ceaps                     # Crear
+PUT    /api/ceaps/fases/:ceapFaseId   # Actualizar fase
+```
+
+### Exportación
+```
+GET    /api/export/csv         # Exportar CSV
+GET    /api/export/excel       # Exportar Excel
+GET    /api/export/ceap/:id/csv  # Detalle CSV
+```
+
+---
+
+## 🎨 Frontend
+
+### Dashboard
+- Vista general de 25 planteles
+- Estadísticas globales
+- Tarjetas con avance
+- Botones de exportación
+- Click para ver detalles
+
+### Detalle de Plantel
+- Información del director
+- Selector de ciclo
+- 7 fases editables
+- Campos: Estado, Fechas, Observaciones
+- Guardar automático
+- Exportar detalle
+
+### Cálculo de Avance
+```
+Avance = (Fases Completadas / 7) × 100
+```
+Se actualiza automáticamente al editar.
+
+---
+
+## 🔧 Comandos
+
+### Desarrollo
+```bash
+npm run install-all          # Instalar todo
+npm run dev                  # Servidor + cliente
+npm run build               # Build solo cliente
+npm run migrate            # Ejecutar migraciones
+```
+
+### Server
+```bash
+cd server
+npm run dev                # Desarrollo (nodemon)
+npm start                  # Producción
+npm run migrate           # Migraciones BD
+```
+
+### Client
+```bash
+cd client
+npm start                 # Desarrollo
+npm run build            # Compilar para producción
+```
+
+---
+
+## 🚀 Deployment
+
+### En Railway (Recomendado)
+
+1. Push a GitHub:
+```bash
+git push origin main
+```
+
+2. Railway detecta automáticamente y:
+   - Instala dependencias
+   - Compila el cliente
+   - Crea PostgreSQL
+   - Inicia el servidor
+
+3. Ejecutar migraciones (primera vez):
+```bash
+railway run npm run migrate
+```
+
+4. ¡Listo! Tu app está en vivo
+
+Ver detalles en [DEPLOY_QUICK.md](DEPLOY_QUICK.md)
+
+### Variables de Entorno (Railway)
+
+Railway proporciona automáticamente:
+- ✅ `DATABASE_URL` - PostgreSQL
+- ✅ `PORT` - Puerto de escucha
+
+No necesitas configurar manualmente.
+
+---
+
+## 📊 Las 7 Fases del CEaP
+
+1. **Convocatoria** - Publicación y difusión
+2. **Asambleas** - Reuniones informativas
+3. **Actas** - Documentos de acuerdos
+4. **Acta Protocolizada** - Notarización
+5. **Registro Público** - Registro oficial
+6. **SAT** - FIEL y cambio de socios
+7. **Cuenta Bancaria** - Nuevo cuenta o cambio
+
+---
+
+## 🔐 Seguridad
+
+- ✅ CORS configurado
+- ✅ Variables de entorno protegidas
+- ✅ PostgreSQL con credenciales seguras
+- ✅ Validación de entrada
+- ✅ Manejo de errores robusto
+
+---
+
+## 📈 Escalabilidad
+
+El sistema está diseñado para:
+- 25 planteles
+- Múltiples ciclos por plantel
+- Cientos de usuarios simultáneos
+- Datos históricos
+- Exportaciones masivas
+
+Railway automatiza:
+- Escalado horizontal
+- Backups automáticos
+- Monitoreo
+- Logs en tiempo real
+
+---
+
+## 🛠️ Tecnologías
+
+| Capa | Tecnología |
+|------|-----------|
+| **Backend** | Node.js, Express, PostgreSQL |
+| **Frontend** | React, CSS |
+| **Deploy** | Railway, Docker, Nixpacks |
+| **Base de Datos** | PostgreSQL (Railway) |
+
+---
+
+## 📞 Soporte
+
+- Documentación: [USAGE.md](USAGE.md)
+- Deploy: [DEPLOY_QUICK.md](DEPLOY_QUICK.md)
+- Railway: https://docs.railway.app
+- GitHub Issues: Crear issue en el repo
+
+---
+
+## 📄 Licencia
+
+© 2026 DGETI Guanajuato - Sistema de Seguimiento CEaP
+
+---
+
+## 🎯 Próximas Mejoras
+
+- [ ] Autenticación de usuarios
+- [ ] Notificaciones por email
+- [ ] Gráficos estadísticos
+- [ ] Importar datos desde Excel
+- [ ] Galería de documentos
+- [ ] API de webhooks
+- [ ] Dark mode
+- [ ] Mobile app
+
+---
+
+**¡Bienvenido a CEaP Tracker!** 🚀
+
 
 ## Estructura del Proyecto
 

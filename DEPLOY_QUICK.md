@@ -21,50 +21,54 @@ git push -u origin main
 4. Busca y selecciona tu repositorio `ceap-tracker`
 5. Railway detectará automáticamente la estructura
 
-### Paso 3: Configurar Variables de Entorno
+Railway **automáticamente**:
+- ✅ Instala dependencias (server + client)
+- ✅ Construye el cliente React
+- ✅ Crea base de datos PostgreSQL
+- ✅ Asigna `DATABASE_URL` automáticamente
+- ✅ Inicia el servidor en puerto 8080
 
-En el dashboard de Railway:
+### Paso 3: Esperar el Deploy
 
-#### Para la base de datos PostgreSQL
-Railway crea automáticamente: `DATABASE_URL`
+Railway ejecutará:
+1. `npm install` (instala dependencias raíz)
+2. **postinstall**: Instala server y client, **construye el cliente**
+3. `npm start`: Inicia el servidor que sirve el frontend en `/`
 
-#### Para el servidor
-```
-NODE_ENV=production
-PORT=5000
-```
+El proceso toma ~2-3 minutos.
 
-#### Para el cliente
-```
-REACT_APP_API_URL=https://<backend-url>/api
-```
+### Paso 4: Verificar que funciona
 
-(Reemplaza `<backend-url>` con la URL que Railway asigna al backend)
+1. En Railway, copia la URL del proyecto (ej: `ceap-tracker-production.up.railway.app`)
+2. Abre en navegador → **Deberías ver el dashboard**
+3. Haz clic en un plantel → Debería cargar detalles
 
-### Paso 4: Ejecutar Migraciones
+### Paso 5: Ejecutar Migraciones de BD (Importante)
+
+Por primera vez, necesitas crear las tablas:
 
 Opción A - Railway CLI:
 ```bash
-railway run npm --prefix server run migrate
+railway run npm run migrate
 ```
 
-Opción B - Manualmente en Railway Dashboard:
-1. Abre el servicio del backend
-2. Ve a "Deployment" → "Terminal"
-3. Ejecuta: `npm run migrate`
+Opción B - Dashboard de Railway:
+1. Abre tu proyecto
+2. Abre "ceap-tracker" service
+3. Ve a la pestaña "Deploy" 
+4. Click en "CLI"
+5. Ejecuta: `npm run migrate`
 
-### Paso 5: Verificar Deployment
-
-- Frontend: `https://ceap-tracker-client-production.up.railway.app`
-- Backend: `https://ceap-tracker-server-production.up.railway.app`
-
-Abre el frontend en tu navegador. ¡Listo!
+Después de esto, la base de datos tendrá todas las tablas y fases listas.
 
 ---
 
-## 🔄 Flujo de Actualizaciones
+## 🔄 Actualizar el código
 
-Cada vez que hagas push a `main`:
+Cada vez que hagas push a `main`, Railway automáticamente:
+1. Detecta los cambios
+2. Reconstruye el cliente
+3. Reinicia el servidor
 
 ```bash
 git add .
@@ -72,95 +76,119 @@ git commit -m "Descripción del cambio"
 git push origin main
 ```
 
-**Railway automáticamente:**
-1. Detecta el nuevo commit
-2. Construye la aplicación
-3. Despliega los cambios
-4. Reinicia los servicios
-
 ---
 
-## 🔧 Configuración Monorepo
+## 📊 Variables de Entorno
 
-El archivo `railway.json` está configurado para que Railway entienda que es un monorepo.
+Railway proporciona automáticamente:
+- ✅ `DATABASE_URL` - Conexión a PostgreSQL
+- ✅ `PORT` - Puerto (8080 en Railway)
 
-Si necesitas cambios específicos por servicio, puedes crear:
-- `server/railway.json`
-- `client/railway.json`
+No necesitas configurar manualmente si estás en producción.
 
----
-
-## 📦 Estructura de Deploy
-
-Railway desplegará automáticamente:
-
+Para desarrollo local, crea `server/.env`:
 ```
-ceap-tracker/
-├── server/        → Backend: Node.js
-├── client/        → Frontend: React (build estático)
-└── railway.json   → Configuración
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=tu_contraseña
+DB_NAME=ceap_tracker
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
 ```
 
 ---
 
-## 🛠️ Comandos Útiles en Railway
+## 🗄️ PostgreSQL en Railway
 
-### Ver logs
-```bash
-railway logs
-```
+Railway **automáticamente**:
+- ✅ Crea una instancia PostgreSQL
+- ✅ Proporciona `DATABASE_URL`
+- ✅ Gestiona backups
+- ✅ Proporciona acceso público (si lo habilitas)
 
-### Ver estado
-```bash
-railway status
-```
-
-### Conectar a BD remotamente
+Para conectarte remotamente:
 ```bash
 railway connect postgres
 ```
 
-### Ejecutar comando en producción
+O usar psql:
 ```bash
-railway run npm run migrate
+psql $DATABASE_URL
 ```
 
 ---
 
-## ✅ Checklist de Deploy
+## 📁 Estructura del Proyecto
 
-- [ ] Código subido a GitHub
-- [ ] Railway conectado al repositorio
-- [ ] Variables de entorno configuradas
-- [ ] Migraciones ejecutadas
-- [ ] Frontend accesible
-- [ ] Backend respondiendo
-- [ ] Dashboard mostrando datos
+```
+ceap-tracker/
+├── server/
+│   ├── src/
+│   │   ├── server.js      ← Sirve frontend + API
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   └── models/
+│   ├── migrations/
+│   └── package.json
+├── client/                 ← React (se compila a build/)
+│   ├── src/
+│   ├── public/
+│   └── package.json
+├── package.json            ← Orquesta todo
+├── railway.json            ← Config Railway
+└── Procfile               ← Procesos
+```
+
+---
+
+## 🎯 URL Final
+
+- Frontend: `https://ceap-tracker-production.up.railway.app/`
+- API: `https://ceap-tracker-production.up.railway.app/api/`
+
+Railway genera un nombre automático. Puedes:
+1. Cambiar el nombre en "Settings" → "Railway Config File"
+2. Agregar dominio personalizado en "Domains"
+
+---
+
+## ✅ Checklist Post-Deploy
+
+- [ ] Proyecto visible en https://railway.app
+- [ ] Frontend carga en navegador
+- [ ] Dashboard muestra los planteles
+- [ ] Click en plantel abre detalles
+- [ ] Migraciones ejecutadas (`npm run migrate`)
+- [ ] Puedes editar fases y guardar (conexión a BD)
+- [ ] Datos persisten al recargar página
 
 ---
 
 ## 🚨 Troubleshooting
 
-### Build falla
-→ Revisar logs en Railway Dashboard
+### Frontend muestra "Ruta no encontrada"
+→ Migraciones no ejecutadas. Ejecuta: `railway run npm run migrate`
 
-### BD no conecta
-→ Verificar que `DATABASE_URL` esté configurada automáticamente
+### Error "Cannot GET /"
+→ El build del cliente no se hizo. Revisa Build Logs en Railway
 
-### Frontend no ve el backend
-→ Actualizar `REACT_APP_API_URL` con la URL correcta de Railway
+### Error "Cannot connect to database"
+→ PostgreSQL no se conectó. Verifica `DATABASE_URL` en Variables
 
-### Migraciones no ejecutadas
-→ Ejecutar manualmente en Railway CLI o terminal del Dashboard
-
----
-
-## 📞 Soporte Railway
-
-- Documentación: https://docs.railway.app
-- Status: https://status.railway.app
-- Community: https://railway.app/discord
+### Puerto incorrecto
+→ Railway asigna automáticamente. Usa el puerto que proporciona.
 
 ---
 
-Con este flujo, tu aplicación se actualiza automáticamente cada vez que hagas push. ¡Sin pasos manuales!
+## 📚 Documentación Adicional
+
+- [Railway Docs](https://docs.railway.app)
+- [Railway CLI](https://docs.railway.app/cli/commands)
+- [PostgreSQL en Railway](https://docs.railway.app/plugins/postgresql)
+
+---
+
+¡Listo! Con `git push` tu aplicación estará en vivo. 🚀
+
