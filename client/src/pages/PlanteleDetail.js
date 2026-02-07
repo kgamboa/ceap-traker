@@ -68,6 +68,8 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       await ceapService.updateFase(editingFaseId, editData);
       setEditingFaseId(null);
       fetchFases(selectedCeap.id);
+      // Recargar CEAPs para actualizar avances
+      await fetchCeaps();
     } catch (err) {
       console.error(err);
       alert('Error al guardar los cambios');
@@ -78,11 +80,11 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
 
   const handleExportCeapCSV = async () => {
     try {
-      const response = await exportService.exportCEAPCSV(selectedCeap.id);
+      const response = await exportService.exportCEAPExcel(selectedCeap.id);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `ceap-${plantel.codigo}-detallado.csv`);
+      link.setAttribute('download', `ceap-${plantel.codigo}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -109,7 +111,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   const handleCreateCeap = async () => {
     try {
       setSaving(true);
-      const response = await ceapService.create({
+      await ceapService.create({
         plantel_id: plantel.id,
         ciclo_inicio: newCeapData.ciclo_inicio,
         ciclo_fin: newCeapData.ciclo_fin
@@ -293,7 +295,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                 <div className="fases-header">
                   <h2>Fases de Implementación</h2>
                   <button className="btn btn-primary" onClick={handleExportCeapCSV}>
-                    <Download size={18} /> Exportar Detalle
+                    <Download size={18} /> Exportar
                   </button>
                 </div>
 

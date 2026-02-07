@@ -8,13 +8,13 @@ DELETE FROM planteles;
 
 -- Insertar fases estándar de implementación
 INSERT INTO fases (nombre, numero_orden, descripcion) VALUES
-  ('Convocatoria', 1, 'Publicación y difusión de la convocatoria para participación de planteles en CEaP'),
+  ('Convocatoria', 1, 'Publicación y difusión de la convocatoria para participación de planteles en CEAP'),
   ('Selección de Planteles', 2, 'Revisión y selección de planteles participantes en el programa'),
   ('Diagnóstico Institucional', 3, 'Evaluación de la situación actual del plantel e identificación de necesidades'),
-  ('Diseño de Modelo CEaP', 4, 'Diseño del modelo de Centro de Enseñanza y Aprendizaje Práctico'),
-  ('Capacitación Inicial', 5, 'Capacitación de directivos y personal docente en metodología CEaP'),
+  ('Diseño de Modelo CEAP', 4, 'Diseño del modelo de Comité Escolar de Administración Participativa'),
+  ('Capacitación Inicial', 5, 'Capacitación de directivos y personal docente en metodología CEAP'),
   ('Adquisición de Equipamiento', 6, 'Compra e instalación de equipamiento necesario'),
-  ('Implementación de Procesos', 7, 'Implementación de procesos y protocolos del CEaP'),
+  ('Implementación de Procesos', 7, 'Implementación de procesos y protocolos del CEAP'),
   ('Seguimiento y Evaluación', 8, 'Monitoreo de avances y evaluación de resultados');
 
 -- Insertar 25 planteles con datos reales de DGETI Guanajuato

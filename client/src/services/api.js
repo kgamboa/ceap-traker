@@ -30,7 +30,8 @@ export const ceapService = {
 export const exportService = {
   exportCSV: () => api.get('/export/csv', { responseType: 'blob' }),
   exportExcel: () => api.get('/export/excel', { responseType: 'blob' }),
-  exportCEAPCSV: (ceapId) => api.get(`/export/ceap/${ceapId}/csv`, { responseType: 'blob' })
+  exportCEAPCSV: (ceapId) => api.get(`/export/ceap/${ceapId}/csv`, { responseType: 'blob' }),
+  exportCEAPExcel: (ceapId) => api.get(`/export/ceap/${ceapId}/excel`, { responseType: 'blob' })
 };
 
 export default api;

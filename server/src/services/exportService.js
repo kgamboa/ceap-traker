@@ -39,6 +39,25 @@ class ExportService {
     
     return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
   }
+
+  static generateDetailedExcel(fases) {
+    const worksheet = XLSX.utils.json_to_sheet(
+      fases.map(fase => ({
+        'Fase': fase.fase_nombre,
+        'Orden': fase.numero_orden,
+        'Estado': fase.estado,
+        'Fecha Conclusión': fase.fecha_conclusión || '',
+        'Fecha Estimada': fase.fecha_estimada || '',
+        'Completado': fase.completado ? 'Sí' : 'No',
+        'Observaciones': fase.observaciones || ''
+      }))
+    );
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fases');
+    
+    return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+  }
 }
 
 module.exports = ExportService;

@@ -14,6 +14,13 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Recargar datos cada 30 segundos para mantenerlos actualizados
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -27,7 +34,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       setDashboardData(dashRes.data);
       setPlanteles(plantRes.data);
 
-      // Crear mapa de CEaPs más recientes por plantel
+      // Crear mapa de CEAPs más recientes por plantel
       const map = {};
       dashRes.data.ceaps.forEach(ceap => {
         if (!map[ceap.plantel_id]) {
@@ -43,19 +50,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
     }
   };
 
-  const handleExportCSV = async () => {
-    try {
-      setExporting(true);
-      const response = await exportService.exportCSV();
-      downloadFile(response.data, 'reporte-ceap.csv', 'text/csv');
-    } catch (err) {
-      console.error(err);
-      alert('Error al exportar CSV');
-    } finally {
-      setExporting(false);
-    }
-  };
-
   const handleExportExcel = async () => {
     try {
       setExporting(true);
@@ -63,7 +57,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       downloadFile(response.data, 'reporte-ceap.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     } catch (err) {
       console.error(err);
-      alert('Error al exportar Excel');
+      alert('Error al exportar');
     } finally {
       setExporting(false);
     }
@@ -93,23 +87,16 @@ export const Dashboard = ({ onPlanteleSelect }) => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="dashboard-title">
-          <h1>Dashboard CEaP - Guanajuato</h1>
-          <p>Seguimiento de la creación y actualización del Centro de Enseñanza y Aprendizaje Práctico</p>
+          <h1>Dashboard CEAP - Guanajuato</h1>
+          <p>Seguimiento del Comité Escolar de Administración Participativa en DGETI</p>
         </div>
         <div className="dashboard-actions">
-          <button 
-            className="btn btn-primary"
-            onClick={handleExportCSV}
-            disabled={exporting}
-          >
-            <Download size={18} /> CSV
-          </button>
           <button 
             className="btn btn-primary"
             onClick={handleExportExcel}
             disabled={exporting}
           >
-            <Download size={18} /> Excel
+            <Download size={18} /> Exportar
           </button>
         </div>
       </div>

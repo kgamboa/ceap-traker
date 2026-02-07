@@ -9,5 +9,6 @@ router.use('/ceaps', ceaps);
 router.get('/export/csv', exportController.exportDashboardCSV);
 router.get('/export/excel', exportController.exportDashboardExcel);
 router.get('/export/ceap/:ceapId/csv', exportController.exportCEAPDetailedCSV);
+router.get('/export/ceap/:ceapId/excel', exportController.exportCEAPDetailedExcel);
 
 module.exports = router;

@@ -47,3 +47,18 @@ exports.exportCEAPDetailedCSV = async (req, res) => {
     res.status(500).json({ error: 'Error al exportar CSV detallado' });
   }
 };
+exports.exportCEAPDetailedExcel = async (req, res) => {
+  try {
+    const { ceapId } = req.params;
+    const fases = await CEaPFaseModel.getByCodeAP(ceapId);
+    
+    const buffer = ExportService.generateDetailedExcel(fases);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="ceap-detallado-' + ceapId + '.xlsx"');
+    res.send(buffer);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al exportar Excel detallado' });
+  }
+};
