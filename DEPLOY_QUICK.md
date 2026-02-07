@@ -28,38 +28,62 @@ Railway **automáticamente**:
 - ✅ Asigna `DATABASE_URL` automáticamente
 - ✅ Inicia el servidor en puerto 8080
 
-### Paso 3: Esperar el Deploy
+### Paso 3: Esperar el Deploy (2-3 minutos)
 
 Railway ejecutará:
 1. `npm install` (instala dependencias raíz)
 2. **postinstall**: Instala server y client, **construye el cliente**
 3. `npm start`: Inicia el servidor que sirve el frontend en `/`
 
-El proceso toma ~2-3 minutos.
+Verás "Build time: XX seconds" cuando esté listo.
 
 ### Paso 4: Verificar que funciona
 
-1. En Railway, copia la URL del proyecto (ej: `ceap-tracker-production.up.railway.app`)
-2. Abre en navegador → **Deberías ver el dashboard**
-3. Haz clic en un plantel → Debería cargar detalles
+Tu URL estará en la sección "Domains" de Railway:
 
-### Paso 5: Ejecutar Migraciones de BD (Importante)
+```
+https://ceap-tracker-production.up.railway.app
+```
 
-Por primera vez, necesitas crear las tablas:
+Abre en navegador → Deberías ver el **dashboard vacío** (sin datos aún)
 
-Opción A - Railway CLI:
+---
+
+## ⚠️ IMPORTANTE: Ejecutar Migraciones (Primera vez)
+
+Las migraciones crean las tablas en PostgreSQL. **Esto se hace EN RAILWAY, no en tu PC**.
+
+### Opción A: Railway CLI (Si tienes instalado)
+
+En tu terminal local:
 ```bash
 railway run npm run migrate
 ```
 
-Opción B - Dashboard de Railway:
-1. Abre tu proyecto
-2. Abre "ceap-tracker" service
-3. Ve a la pestaña "Deploy" 
-4. Click en "CLI"
-5. Ejecuta: `npm run migrate`
+### Opción B: Panel de Railway (Recomendado - sin instalar nada)
 
-Después de esto, la base de datos tendrá todas las tablas y fases listas.
+1. Ve a https://railway.app
+2. Abre tu proyecto `ceap-tracker`
+3. Haz clic en el servicio `ceap-tracker`
+4. Ve a la pestaña **"Deploy"**
+5. Haz clic en el botón **"CLI"** (esquina inferior derecha)
+6. Se abre una terminal integrada
+7. Copia y pega:
+```bash
+npm run migrate
+```
+8. Presiona Enter
+9. Espera a ver "✓ Migraciones completadas exitosamente"
+
+### Paso 5: ¡Listo!
+
+Ahora:
+- ✅ Dashboard visible
+- ✅ 25 planteles cargados
+- ✅ Puedes editar fases
+- ✅ Los cambios se guardan en PostgreSQL
+
+---
 
 ---
 
@@ -84,19 +108,7 @@ Railway proporciona automáticamente:
 - ✅ `DATABASE_URL` - Conexión a PostgreSQL
 - ✅ `PORT` - Puerto (8080 en Railway)
 
-No necesitas configurar manualmente si estás en producción.
-
-Para desarrollo local, crea `server/.env`:
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=tu_contraseña
-DB_NAME=ceap_tracker
-PORT=5000
-NODE_ENV=development
-CLIENT_URL=http://localhost:3000
-```
+No necesitas configurar manualmente.
 
 ---
 
@@ -157,38 +169,51 @@ Railway genera un nombre automático. Puedes:
 ## ✅ Checklist Post-Deploy
 
 - [ ] Proyecto visible en https://railway.app
-- [ ] Frontend carga en navegador
-- [ ] Dashboard muestra los planteles
+- [ ] Frontend carga en navegador (ej: ceap-tracker-production.up.railway.app)
+- [ ] Dashboard muestra "Cargando..."
+- [ ] Ejecutaste migraciones (`railway run npm run migrate`)
+- [ ] Dashboard muestra 25 planteles
 - [ ] Click en plantel abre detalles
-- [ ] Migraciones ejecutadas (`npm run migrate`)
-- [ ] Puedes editar fases y guardar (conexión a BD)
+- [ ] Puedes editar fases
 - [ ] Datos persisten al recargar página
 
 ---
 
 ## 🚨 Troubleshooting
-
-### Frontend muestra "Ruta no encontrada"
+"Cargando..." infinito en dashboard
 → Migraciones no ejecutadas. Ejecuta: `railway run npm run migrate`
 
-### Error "Cannot GET /"
-→ El build del cliente no se hizo. Revisa Build Logs en Railway
+### Error "Ruta no encontrada"
+→ Frontend no compiló correctamente. Ve a Build Logs en Railway
 
 ### Error "Cannot connect to database"
-→ PostgreSQL no se conectó. Verifica `DATABASE_URL` en Variables
+→ PostgreSQL no se creó. Railway debe crear automáticamente. Contacta soporte.
 
-### Puerto incorrecto
+### Dashboard no muestra planteles
+→ Migraciones incompletas. Verifica con: `railway run npm run migrate`
 → Railway asigna automáticamente. Usa el puerto que proporciona.
 
 ---
 
-## 📚 Documentación Adicional
+## 📞 ¿Dónde ejecutar qué?
 
-- [Railway Docs](https://docs.railway.app)
-- [Railway CLI](https://docs.railway.app/cli/commands)
-- [PostgreSQL en Railway](https://docs.railway.app/plugins/postgresql)
+| Comando | Dónde |
+|---------|-------|
+| `git push` | Terminal local (tu PC) |
+| `railway run npm run migrate` | Terminal local O Panel Railway |
+| `npm run dev` | Terminal local (desarrollo) |
+| Cambios de código | En tu editor local, luego push |
 
 ---
 
-¡Listo! Con `git push` tu aplicación estará en vivo. 🚀
+## 🎯 URLs Finales
+
+- **Frontend**: `https://ceap-tracker-production.up.railway.app`
+- **API**: `https://ceap-tracker-production.up.railway.app/api/`
+
+Puedes cambiar el nombre en Railway Settings si quieres.
+
+---
+
+¡Listo! Con `git push` y `railway run npm run migrate` tu aplicación está lista. 🚀
 

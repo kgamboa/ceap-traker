@@ -34,12 +34,21 @@ git push origin main
    - ✅ Inicia el servidor
    - ✅ Sirve el frontend en `/`
 
-4. **Primera vez: Ejecutar migraciones**
-```bash
-railway run npm run migrate
-```
+4. **⚠️ IMPORTANTE: Ejecutar migraciones (Primera vez)
 
-5. **¡Listo!** Abre tu URL de Railway → Deberías ver el dashboard
+   Las migraciones crean las tablas en PostgreSQL. Ejecuta **EN RAILWAY**:
+   
+   ```bash
+   railway run npm run migrate
+   ```
+   
+   O en el Panel de Railway:
+   - Abre tu proyecto
+   - Click en servicio `ceap-tracker`
+   - Pestaña "Deploy" → Click "CLI"
+   - Ejecuta: `npm run migrate`
+
+5. **¡Listo!** Dashboard cargará con 25 planteles
 
 ### Opción 2: Desarrollo Local
 
@@ -59,7 +68,7 @@ DB_NAME=ceap_tracker
 PORT=5000
 NODE_ENV=development
 
-# Ejecutar migraciones
+# Ejecutar migraciones (LOCAL)
 npm run migrate
 
 # Iniciar en desarrollo (dos terminales)
@@ -71,6 +80,17 @@ cd client && npm start
 ```
 
 Abre http://localhost:3000
+
+---
+
+## 📌 Recordatorio: ¿Dónde ejecutar migraciones?
+
+| Entorno | Comando | Ubicación |
+|---------|---------|-----------|
+| **Railway (Producción)** | `railway run npm run migrate` | Terminal local O Panel Railway |
+| **Desarrollo Local** | `npm run migrate` | Terminal en tu PC |
+
+**Nunca** ejecutes las migraciones de desarrollo en producción. Railway ejecuta automáticamente migraciones si lo necesita.
 
 ---
 
