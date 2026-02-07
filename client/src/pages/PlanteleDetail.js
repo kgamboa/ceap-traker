@@ -69,7 +69,13 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       setEditingFaseId(null);
       fetchFases(selectedCeap.id);
       // Recargar CEAPs para actualizar avances
-      await fetchCeaps();
+      const response = await ceapService.getByPlantel(plantel.id);
+      setCeaps(response.data);
+      // Actualizar selectedCeap con los nuevos datos
+      const updatedCeap = response.data.find(c => c.id === selectedCeap.id);
+      if (updatedCeap) {
+        setSelectedCeap(updatedCeap);
+      }
     } catch (err) {
       console.error(err);
       alert('Error al guardar los cambios');
@@ -111,7 +117,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   const handleCreateCeap = async () => {
     try {
       setSaving(true);
-      await ceapService.create({
+      const createResponse = await ceapService.create({
         plantel_id: plantel.id,
         ciclo_inicio: newCeapData.ciclo_inicio,
         ciclo_fin: newCeapData.ciclo_fin
@@ -124,7 +130,13 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       });
       
       // Recargar los CEaPs
-      await fetchCeaps();
+      const response = await ceapService.getByPlantel(plantel.id);
+      setCeaps(response.data);
+      // Seleccionar el CEAP recién creado
+      const newCeap = response.data.find(c => c.id === createResponse.data.id);
+      if (newCeap) {
+        setSelectedCeap(newCeap);
+      }
       alert('CEAP creado correctamente. Las fases se han inicializado automáticamente.');
     } catch (err) {
       console.error(err);

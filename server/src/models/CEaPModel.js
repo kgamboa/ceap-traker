@@ -11,10 +11,14 @@ class CEaPModel {
 
   static async getByPlanteles(plantelId) {
     const result = await pool.query(
-      `SELECT c.*, p.nombre as plantel_nombre
+      `SELECT c.*, p.nombre as plantel_nombre,
+        COUNT(cf.id) as total_fases,
+        SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END) as fases_completadas
        FROM ceaps c
        JOIN planteles p ON c.plantel_id = p.id
+       LEFT JOIN ceap_fases cf ON c.id = cf.ceap_id
        WHERE c.plantel_id = $1
+       GROUP BY c.id, p.id
        ORDER BY c.ciclo_inicio DESC`,
       [plantelId]
     );
