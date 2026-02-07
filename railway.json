@@ -4,11 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "numReplicas": 1,
     "startCommand": "npm start",
     "restartPolicyMaxRetries": 10
-  },
-  "plugins": [
-    "postgres"
-  ]
+  }
 }

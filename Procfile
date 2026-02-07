@@ -1,2 +1,2 @@
-web: cd server && npm start
-migrate: cd server && npm run migrate
+web: npm start
+release: npm run migrate
