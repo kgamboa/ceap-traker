@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { Pool } = require('pg');
 require('dotenv').config();
 
 const routes = require('./routes/index');
-const pool = require('./config/database');
 const fs = require('fs');
 
 const app = express();
@@ -17,10 +17,40 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Función para esperar a que PostgreSQL esté disponible
+async function waitForDatabase(maxRetries = 30) {
+  const pool = new Pool(
+    process.env.DATABASE_URL
+      ? {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+        }
+      : {
+          user: process.env.DB_USER || 'postgres',
+          password: process.env.DB_PASSWORD || 'postgres',
+          host: process.env.DB_HOST || 'localhost',
+          port: process.env.DB_PORT || 5432,
+          database: process.env.DB_NAME || 'ceap_tracker',
+        }
+  );
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await pool.query('SELECT 1');
+      console.log('✓ Conexión a PostgreSQL establecida');
+      return pool;
+    } catch (error) {
+      console.log(`Intento ${i + 1}/${maxRetries}: Esperando PostgreSQL...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+  throw new Error('No se pudo conectar a PostgreSQL después de varios intentos');
+}
+
 // Función para ejecutar migraciones
-async function runMigrationsOnStartup() {
+async function runMigrationsOnStartup(pool) {
   try {
-    console.log('Verificando y ejecutando migraciones...');
+    console.log('Ejecutando migraciones...');
     
     // Ejecutar schema
     const schemaPath = path.join(__dirname, '../migrations/001_initial_schema.sql');
@@ -34,7 +64,11 @@ async function runMigrationsOnStartup() {
     await pool.query(seedSql);
     console.log('✓ Seed data insertado exitosamente');
   } catch (error) {
-    console.log('Migraciones ya ejecutadas o error:', error.message);
+    if (error.message.includes('already exists')) {
+      console.log('✓ Migraciones ya ejecutadas anteriormente');
+    } else {
+      console.error('Error en migraciones:', error.message);
+    }
   }
 }
 
@@ -62,15 +96,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-
 const PORT = process.env.PORT || 5000;
 
-// Ejecutar migraciones antes de iniciar el servidor
-runMigrationsOnStartup().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Servidor CEaP Tracker ejecutándose en puerto ${PORT}`);
+// Esperar a que PostgreSQL esté disponible, luego ejecutar migraciones
+waitForDatabase()
+  .then(async (pool) => {
+    await runMigrationsOnStartup(pool);
+    await pool.end();
+    
+    app.listen(PORT, () => {
+      console.log(`Servidor CEaP Tracker ejecutándose en puerto ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Error fatal:', error.message);
+    process.exit(1);
   });
-}).catch((error) => {
-  console.error('Error fatal:', error);
-  process.exit(1);
-});
