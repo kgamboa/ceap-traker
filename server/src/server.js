@@ -4,6 +4,8 @@ const path = require('path');
 require('dotenv').config();
 
 const routes = require('./routes/index');
+const pool = require('./config/database');
+const fs = require('fs');
 
 const app = express();
 
@@ -14,6 +16,27 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Función para ejecutar migraciones
+async function runMigrationsOnStartup() {
+  try {
+    console.log('Verificando y ejecutando migraciones...');
+    
+    // Ejecutar schema
+    const schemaPath = path.join(__dirname, '../migrations/001_initial_schema.sql');
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    await pool.query(schemaSql);
+    console.log('✓ Schema migrado exitosamente');
+    
+    // Ejecutar seed data
+    const seedPath = path.join(__dirname, '../migrations/002_seed_data.sql');
+    const seedSql = fs.readFileSync(seedPath, 'utf8');
+    await pool.query(seedSql);
+    console.log('✓ Seed data insertado exitosamente');
+  } catch (error) {
+    console.log('Migraciones ya ejecutadas o error:', error.message);
+  }
+}
 
 // Servir archivos estáticos del cliente (en producción)
 const clientPath = path.join(__dirname, '../../client/build');
@@ -42,6 +65,12 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Servidor CEaP Tracker ejecutándose en puerto ${PORT}`);
+// Ejecutar migraciones antes de iniciar el servidor
+runMigrationsOnStartup().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Servidor CEaP Tracker ejecutándose en puerto ${PORT}`);
+  });
+}).catch((error) => {
+  console.error('Error fatal:', error);
+  process.exit(1);
 });
