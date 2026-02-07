@@ -83,7 +83,7 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
     if (ceap) {
       return `${ceap.ciclo_inicio}-${ceap.ciclo_fin}`;
     }
-    return 'Sin CEaP';
+    return 'Sin CEAP';
   };
 
   return (

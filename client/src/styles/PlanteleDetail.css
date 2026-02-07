@@ -54,7 +54,7 @@
   color: var(--text-color);
 }
 
-/* CEaP Selector */
+/* CEAP Selector */
 .ceap-selector {
   background: white;
   padding: 1.5rem;
@@ -79,7 +79,7 @@
   max-width: 300px;
 }
 
-/* CEaP Progress */
+/* CEAP Progress */
 .ceap-progress {
   background: white;
   padding: 1.5rem;
@@ -246,7 +246,7 @@
   border: 1px solid var(--border-color);
 }
 
-/* CEaP Selector Updated */
+/* CEAP Selector Updated */
 .ceap-selector {
   display: flex;
   align-items: center;
@@ -349,7 +349,7 @@
   justify-content: flex-end;
 }
 
-/* No CEaP Section Updated */
+/* No CEAP Section Updated */
 .no-ceap {
   display: flex;
   flex-direction: column;

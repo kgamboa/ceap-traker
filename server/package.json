@@ -1,7 +1,7 @@
 {
   "name": "ceap-tracker-server",
   "version": "1.0.0",
-  "description": "CEAP Tracker Server - Sistema de seguimiento de CEaP en DGETI Guanajuato",
+  "description": "CEAP Tracker Server - Sistema de seguimiento de CEAP en DGETI Guanajuato",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

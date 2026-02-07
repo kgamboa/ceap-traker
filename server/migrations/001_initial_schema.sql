@@ -13,7 +13,7 @@ CREATE TABLE planteles (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de CEaP (pueden ser múltiples por plantel si cambian ciclos)
+-- Tabla de CEAP (pueden ser múltiples por plantel si cambian ciclos)
 CREATE TABLE ceaps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   plantel_id UUID NOT NULL REFERENCES planteles(id) ON DELETE CASCADE,
@@ -26,7 +26,7 @@ CREATE TABLE ceaps (
   UNIQUE(plantel_id, ciclo_inicio, ciclo_fin)
 );
 
--- Tabla de fases del CEaP
+-- Tabla de fases del CEAP
 CREATE TABLE fases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre VARCHAR(100) NOT NULL UNIQUE,
@@ -35,7 +35,7 @@ CREATE TABLE fases (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de avances de fases por CEaP
+-- Tabla de avances de fases por CEAP
 CREATE TABLE ceap_fases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   ceap_id UUID NOT NULL REFERENCES ceaps(id) ON DELETE CASCADE,
@@ -59,7 +59,7 @@ CREATE INDEX idx_ceap_fases_fase ON ceap_fases(fase_id);
 
 -- Insertar fases predefinidas
 INSERT INTO fases (nombre, descripcion, numero_orden) VALUES
-  ('Convocatoria', 'Publicación y difusión de la convocatoria para el CEaP', 1),
+  ('Convocatoria', 'Publicación y difusión de la convocatoria para el CEAP', 1),
   ('Asambleas', 'Celebración de asambleas informativas con maestros y personal', 2),
   ('Actas', 'Elaboración y aprobación de actas de las asambleas', 3),
   ('Acta Protocolizada', 'Protocolización del acta ante notario público', 4),

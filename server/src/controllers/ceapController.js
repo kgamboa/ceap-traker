@@ -19,7 +19,7 @@ exports.getCEAPFases = async (req, res) => {
     res.json(fases);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al obtener fases del CEaP' });
+    res.status(500).json({ error: 'Error al obtener fases del CEAP' });
   }
 };
 
@@ -30,7 +30,7 @@ exports.updateCEAPFase = async (req, res) => {
     
     const faseActualizada = await CEaPFaseModel.update(ceapFaseId, req.body);
     
-    // Actualizar el porcentaje de avance del CEaP
+    // Actualizar el porcentaje de avance del CEAP
     await CEaPModel.updateProgress(ceapId);
     
     res.json(faseActualizada);
@@ -76,12 +76,12 @@ exports.createCEAP = async (req, res) => {
     
     const ceap = await CEaPModel.create(plantel_id, ciclo_inicio, ciclo_fin);
     
-    // Inicializar todas las fases para este CEaP
+    // Inicializar todas las fases para este CEAP
     await CEaPFaseModel.initializeFasesForCEAP(ceap.id);
     
     res.status(201).json(ceap);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al crear CEaP' });
+    res.status(500).json({ error: 'Error al crear CEAP' });
   }
 };

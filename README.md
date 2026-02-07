@@ -1,15 +1,15 @@
-# CEaP Tracker - Sistema de Seguimiento CEaP
+# CEAP Tracker - Sistema de Seguimiento CEAP
 
-Un sistema integral para el seguimiento de la creación y actualización del Centro de Enseñanza y Aprendizaje Práctico (CEaP) en los 25 planteles de DGETI Guanajuato.
+Un sistema integral para el seguimiento de la creación y actualización del Centro de Enseñanza y Aprendizaje Práctico (CEAP) en los 25 planteles de DGETI Guanajuato.
 
 ## 🎯 Características
 
-- **Dashboard Intuitivo**: Visualiza el estatus de todos los CEaP en tiempo real
+- **Dashboard Intuitivo**: Visualiza el estatus de todos los CEAP en tiempo real
 - **Seguimiento de 7 Fases**: Convocatoria, Asambleas, Actas, Acta Protocolizada, Registro Público, SAT, Cuenta Bancaria
 - **Gestión por Plantel**: Cada plantel puede actualizar el estatus de sus fases
 - **Cálculo Automático**: Porcentaje de avance global y por plantel
 - **Exportación de Datos**: Descarga reportes en CSV y Excel
-- **Ciclos CEaP**: Soporte para ciclos de 2 años (2024-2026, 2025-2027, etc.)
+- **Ciclos CEAP**: Soporte para ciclos de 2 años (2024-2026, 2025-2027, etc.)
 - **PostgreSQL**: Base de datos robusta y escalable
 - **Interfaz Moderna**: Diseño intuitivo y responsive
 
@@ -136,7 +136,7 @@ ceap-tracker/
 |-------|-----------|
 | **planteles** | 25 planteles DGETI Guanajuato |
 | **ceaps** | CEaPs por plantel (2024-2026, 2025-2027, etc.) |
-| **fases** | 7 fases del proceso CEaP |
+| **fases** | 7 fases del proceso CEAP |
 | **ceap_fases** | Estado de cada fase |
 | **ceap_fases_historial** | Auditoría de cambios |
 
@@ -160,7 +160,7 @@ POST   /api/planteles          # Crear
 PUT    /api/planteles/:id      # Actualizar
 ```
 
-### CEaP
+### CEAP
 ```
 GET    /api/ceaps/dashboard           # Dashboard
 GET    /api/ceaps/plantel/:id         # Por plantel
@@ -264,7 +264,7 @@ No necesitas configurar manualmente.
 
 ---
 
-## 📊 Las 7 Fases del CEaP
+## 📊 Las 7 Fases del CEAP
 
 1. **Convocatoria** - Publicación y difusión
 2. **Asambleas** - Reuniones informativas
@@ -325,7 +325,7 @@ Railway automatiza:
 
 ## 📄 Licencia
 
-© 2026 DGETI Guanajuato - Sistema de Seguimiento CEaP
+© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP
 
 ---
 
@@ -342,7 +342,7 @@ Railway automatiza:
 
 ---
 
-**¡Bienvenido a CEaP Tracker!** 🚀
+**¡Bienvenido a CEAP Tracker!** 🚀
 
 
 ## Estructura del Proyecto
@@ -476,11 +476,11 @@ Railway ejecutará estas automáticamente.
 - `POST /api/planteles` - Crear plantel
 - `PUT /api/planteles/:id` - Actualizar plantel
 
-### CEaP
+### CEAP
 - `GET /api/ceaps/dashboard` - Obtener datos del dashboard
 - `GET /api/ceaps/plantel/:plantelId` - Obtener CEaPs de un plantel
-- `GET /api/ceaps/:ceapId/fases` - Obtener fases de un CEaP
-- `POST /api/ceaps` - Crear CEaP
+- `GET /api/ceaps/:ceapId/fases` - Obtener fases de un CEAP
+- `POST /api/ceaps` - Crear CEAP
 - `PUT /api/ceaps/fases/:ceapFaseId` - Actualizar fase
 
 ### Exportación
@@ -495,19 +495,19 @@ Railway ejecutará estas automáticamente.
 **planteles**: Información de los 25 planteles
 - id, nombre, código, estado, municipio, director_email, director_nombre, etc.
 
-**ceaps**: Registros de CEaP por plantel y ciclo
+**ceaps**: Registros de CEAP por plantel y ciclo
 - id, plantel_id, ciclo_inicio, ciclo_fin, porcentaje_avance, estado
 
 **fases**: Definición de las 7 fases
 - id, nombre, descripcion, numero_orden
 
-**ceap_fases**: Estado de cada fase para cada CEaP
+**ceap_fases**: Estado de cada fase para cada CEAP
 - id, ceap_id, fase_id, estado, fecha_conclusión, fecha_estimada, completado, observaciones
 
 **ceap_fases_historial**: Auditoría de cambios
 - id, ceap_fase_id, estado_anterior, estado_nuevo, fecha_cambio, usuario_email
 
-## Ciclos CEaP Soportados
+## Ciclos CEAP Soportados
 
 - 2024-2026
 - 2025-2027
@@ -540,7 +540,7 @@ Se actualiza cada vez que se modifica el estado de una fase.
 
 ### Detalle de Plantel
 - Información completa del plantel
-- Selector de ciclo CEaP
+- Selector de ciclo CEAP
 - Lista editable de 7 fases
 - Campos: Estado, Fecha Conclusión, Fecha Estimada, Observaciones
 - Opción para marcar como completado
@@ -569,4 +569,4 @@ Para reportar problemas o sugerencias, contacta al equipo de DGETI Guanajuato.
 
 ---
 
-© 2026 DGETI Guanajuato - Sistema de Seguimiento CEaP
+© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP

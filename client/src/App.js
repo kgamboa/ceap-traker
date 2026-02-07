@@ -21,8 +21,8 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-header-content">
-          <h1 className="app-title">CEaP Tracker</h1>
-          <p className="app-subtitle">Sistema de Seguimiento CEaP - DGETI Guanajuato</p>
+          <h1 className="app-title">CEAP Tracker</h1>
+          <p className="app-subtitle">Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
         </div>
       </header>
 
@@ -35,7 +35,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEaP</p>
+        <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP</p>
       </footer>
     </div>
   );

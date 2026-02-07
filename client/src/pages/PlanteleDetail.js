@@ -125,10 +125,10 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       
       // Recargar los CEaPs
       await fetchCeaps();
-      alert('CEaP creado correctamente. Las fases se han inicializado automáticamente.');
+      alert('CEAP creado correctamente. Las fases se han inicializado automáticamente.');
     } catch (err) {
       console.error(err);
-      alert('Error al crear el CEaP');
+      alert('Error al crear el CEAP');
     } finally {
       setSaving(false);
     }
@@ -252,19 +252,19 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       {ceaps.length === 0 ? (
         <div className="no-ceap">
           <AlertCircle size={48} />
-          <p>No hay CEaP registrado para este plantel</p>
+          <p>No hay CEAP registrado para este plantel</p>
           <button 
             className="btn btn-primary"
             onClick={() => setShowNewCeapModal(true)}
           >
-            <Plus size={18} /> Crear Nuevo CEaP
+            <Plus size={18} /> Crear Nuevo CEAP
           </button>
         </div>
       ) : (
         <>
           <div className="ceap-selector">
             <div className="ceap-selector-left">
-              <label><strong>Seleccionar CEaP:</strong></label>
+              <label><strong>Seleccionar CEAP:</strong></label>
               <select 
                 value={selectedCeap?.id || ''} 
                 onChange={(e) => setSelectedCeap(ceaps.find(c => c.id === e.target.value))}
@@ -280,14 +280,14 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               className="btn btn-primary"
               onClick={() => setShowNewCeapModal(true)}
             >
-              <Plus size={18} /> Nuevo CEaP
+              <Plus size={18} /> Nuevo CEAP
             </button>
           </div>
 
           {selectedCeap && (
             <>
               <div className="ceap-progress">
-                <h2>Avance del CEaP {selectedCeap.ciclo_inicio}-{selectedCeap.ciclo_fin}</h2>
+                <h2>Avance del CEAP {selectedCeap.ciclo_inicio}-{selectedCeap.ciclo_fin}</h2>
                 <ProgressBar percentage={selectedCeap.porcentaje_avance || 0} size="lg" />
               </div>
 
@@ -393,12 +393,12 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         </>
       )}
 
-      {/* Modal para crear nuevo CEaP */}
+      {/* Modal para crear nuevo CEAP */}
       {showNewCeapModal && (
         <div className="modal-overlay" onClick={() => setShowNewCeapModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Crear Nuevo CEaP</h2>
+              <h2>Crear Nuevo CEAP</h2>
               <button 
                 className="btn-close"
                 onClick={() => setShowNewCeapModal(false)}
@@ -433,7 +433,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               </div>
               
               <p className="modal-info">
-                <strong>Nota:</strong> Se crearán automáticamente todas las fases de implementación para este CEaP.
+                <strong>Nota:</strong> Se crearán automáticamente todas las fases de implementación para este CEAP.
               </p>
             </div>
             
@@ -443,7 +443,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                 onClick={handleCreateCeap}
                 disabled={saving}
               >
-                <Plus size={18} /> Crear CEaP
+                <Plus size={18} /> Crear CEAP
               </button>
               <button 
                 className="btn btn-secondary"

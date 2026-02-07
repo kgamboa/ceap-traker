@@ -17,7 +17,7 @@ export const planteleService = {
   update: (id, datos) => api.put(`/planteles/${id}`, datos)
 };
 
-// Servicios de CEaP
+// Servicios de CEAP
 export const ceapService = {
   getDashboard: () => api.get('/ceaps/dashboard'),
   getByPlantel: (plantelId) => api.get(`/ceaps/plantel/${plantelId}`),

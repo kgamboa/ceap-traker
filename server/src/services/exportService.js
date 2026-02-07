@@ -35,7 +35,7 @@ class ExportService {
     );
     
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'CEaP');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'CEAP');
     
     return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
   }

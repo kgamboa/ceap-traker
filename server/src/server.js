@@ -111,7 +111,7 @@ waitForDatabase()
     await pool.end();
     
     app.listen(PORT, () => {
-      console.log(`Servidor CEaP Tracker ejecutándose en puerto ${PORT}`);
+      console.log(`Servidor CEAP Tracker ejecutándose en puerto ${PORT}`);
     });
   })
   .catch((error) => {
