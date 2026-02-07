@@ -18,30 +18,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Función para esperar a que PostgreSQL esté disponible
-async function waitForDatabase(maxRetries = 30) {
-  const pool = new Pool(
-    process.env.DATABASE_URL
-      ? {
-          connectionString: process.env.DATABASE_URL,
-          ssl: { rejectUnauthorized: false }
-        }
-      : {
-          user: process.env.DB_USER || 'postgres',
-          password: process.env.DB_PASSWORD || 'postgres',
-          host: process.env.DB_HOST || 'localhost',
-          port: process.env.DB_PORT || 5432,
-          database: process.env.DB_NAME || 'ceap_tracker',
-        }
-  );
+async function waitForDatabase(maxRetries = 60) {
+  console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+  console.log('DB_HOST:', process.env.DB_HOST);
+  console.log('DB_PORT:', process.env.DB_PORT);
+  
+  const config = process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      }
+    : {
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'ceap_tracker',
+      };
+
+  console.log('Intentando conectarse a:', process.env.DATABASE_URL ? 'DATABASE_URL' : `${config.host}:${config.port}`);
+  
+  const pool = new Pool(config);
 
   for (let i = 0; i < maxRetries; i++) {
     try {
-      await pool.query('SELECT 1');
+      const result = await pool.query('SELECT 1');
       console.log('✓ Conexión a PostgreSQL establecida');
       return pool;
     } catch (error) {
-      console.log(`Intento ${i + 1}/${maxRetries}: Esperando PostgreSQL...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log(`Intento ${i + 1}/${maxRetries}: Esperando PostgreSQL... (${error.code || error.message})`);
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
   throw new Error('No se pudo conectar a PostgreSQL después de varios intentos');
