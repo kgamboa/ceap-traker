@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ceapService, exportService } from '../services/api';
+import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
-import { ChevronLeft, Save, Download, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X } from 'lucide-react';
 import '../styles/PlanteleDetail.css';
 
 export const PlanteleDetail = ({ plantel, onBack }) => {
@@ -12,6 +12,13 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   const [saving, setSaving] = useState(false);
   const [editingFaseId, setEditingFaseId] = useState(null);
   const [editData, setEditData] = useState({});
+  const [editingPlantel, setEditingPlantel] = useState(false);
+  const [plantelData, setPlantelData] = useState(plantel);
+  const [showNewCeapModal, setShowNewCeapModal] = useState(false);
+  const [newCeapData, setNewCeapData] = useState({
+    ciclo_inicio: new Date().getFullYear(),
+    ciclo_fin: new Date().getFullYear() + 1
+  });
 
   const fetchCeaps = useCallback(async () => {
     try {
@@ -85,6 +92,46 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     }
   };
 
+  const handleSavePlantel = async () => {
+    try {
+      setSaving(true);
+      await planteleService.update(plantel.id, plantelData);
+      setEditingPlantel(false);
+      alert('Información del plantel actualizada correctamente');
+    } catch (err) {
+      console.error(err);
+      alert('Error al actualizar la información del plantel');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreateCeap = async () => {
+    try {
+      setSaving(true);
+      const response = await ceapService.create({
+        plantel_id: plantel.id,
+        ciclo_inicio: newCeapData.ciclo_inicio,
+        ciclo_fin: newCeapData.ciclo_fin
+      });
+      
+      setShowNewCeapModal(false);
+      setNewCeapData({
+        ciclo_inicio: new Date().getFullYear(),
+        ciclo_fin: new Date().getFullYear() + 1
+      });
+      
+      // Recargar los CEaPs
+      await fetchCeaps();
+      alert('CEaP creado correctamente. Las fases se han inicializado automáticamente.');
+    } catch (err) {
+      console.error(err);
+      alert('Error al crear el CEaP');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Cargando información del plantel...</div>;
   }
@@ -103,12 +150,100 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
 
       <div className="detail-info">
         <div className="info-card">
-          <h3>Información del Plantel</h3>
-          <p><strong>Director:</strong> {plantel.director_nombre}</p>
-          <p><strong>Email:</strong> {plantel.director_email}</p>
-          <p><strong>Teléfono:</strong> {plantel.telefono}</p>
-          <p><strong>Estado:</strong> {plantel.estado}</p>
-          <p><strong>Municipio:</strong> {plantel.municipio}</p>
+          <div className="info-card-header">
+            <h3>Información del Plantel</h3>
+            <button 
+              className="btn btn-sm btn-primary"
+              onClick={() => {
+                setEditingPlantel(true);
+                setPlantelData(plantel);
+              }}
+            >
+              <Edit2 size={16} /> Editar
+            </button>
+          </div>
+          
+          {editingPlantel ? (
+            <div className="plantel-editor">
+              <div className="form-group">
+                <label>Nombre del Plantel:</label>
+                <input 
+                  type="text"
+                  value={plantelData.nombre || ''}
+                  onChange={(e) => setPlantelData({...plantelData, nombre: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Director:</label>
+                <input 
+                  type="text"
+                  value={plantelData.director_nombre || ''}
+                  onChange={(e) => setPlantelData({...plantelData, director_nombre: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Email:</label>
+                <input 
+                  type="email"
+                  value={plantelData.director_email || ''}
+                  onChange={(e) => setPlantelData({...plantelData, director_email: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Teléfono:</label>
+                <input 
+                  type="text"
+                  value={plantelData.telefono || ''}
+                  onChange={(e) => setPlantelData({...plantelData, telefono: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Municipio:</label>
+                <input 
+                  type="text"
+                  value={plantelData.municipio || ''}
+                  onChange={(e) => setPlantelData({...plantelData, municipio: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Estado:</label>
+                <input 
+                  type="text"
+                  value={plantelData.estado || ''}
+                  onChange={(e) => setPlantelData({...plantelData, estado: e.target.value})}
+                />
+              </div>
+              
+              <div className="form-actions">
+                <button 
+                  className="btn btn-success"
+                  onClick={handleSavePlantel}
+                  disabled={saving}
+                >
+                  <Save size={18} /> Guardar
+                </button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => setEditingPlantel(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p><strong>Director:</strong> {plantelData.director_nombre}</p>
+              <p><strong>Email:</strong> {plantelData.director_email}</p>
+              <p><strong>Teléfono:</strong> {plantelData.telefono}</p>
+              <p><strong>Estado:</strong> {plantelData.estado}</p>
+              <p><strong>Municipio:</strong> {plantelData.municipio}</p>
+            </>
+          )}
         </div>
       </div>
 
@@ -116,21 +251,35 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="no-ceap">
           <AlertCircle size={48} />
           <p>No hay CEaP registrado para este plantel</p>
+          <button 
+            className="btn btn-primary"
+            onClick={() => setShowNewCeapModal(true)}
+          >
+            <Plus size={18} /> Crear Nuevo CEaP
+          </button>
         </div>
       ) : (
         <>
           <div className="ceap-selector">
-            <label><strong>Seleccionar CEaP:</strong></label>
-            <select 
-              value={selectedCeap?.id || ''} 
-              onChange={(e) => setSelectedCeap(ceaps.find(c => c.id === e.target.value))}
+            <div className="ceap-selector-left">
+              <label><strong>Seleccionar CEaP:</strong></label>
+              <select 
+                value={selectedCeap?.id || ''} 
+                onChange={(e) => setSelectedCeap(ceaps.find(c => c.id === e.target.value))}
+              >
+                {ceaps.map(ceap => (
+                  <option key={ceap.id} value={ceap.id}>
+                    {ceap.ciclo_inicio}-{ceap.ciclo_fin}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowNewCeapModal(true)}
             >
-              {ceaps.map(ceap => (
-                <option key={ceap.id} value={ceap.id}>
-                  {ceap.ciclo_inicio}-{ceap.ciclo_fin}
-                </option>
-              ))}
-            </select>
+              <Plus size={18} /> Nuevo CEaP
+            </button>
           </div>
 
           {selectedCeap && (
@@ -241,8 +390,71 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
           )}
         </>
       )}
+
+      {/* Modal para crear nuevo CEaP */}
+      {showNewCeapModal && (
+        <div className="modal-overlay" onClick={() => setShowNewCeapModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Crear Nuevo CEaP</h2>
+              <button 
+                className="btn-close"
+                onClick={() => setShowNewCeapModal(false)}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Ciclo Inicio:</label>
+                <input 
+                  type="number"
+                  value={newCeapData.ciclo_inicio}
+                  onChange={(e) => setNewCeapData({
+                    ...newCeapData, 
+                    ciclo_inicio: parseInt(e.target.value)
+                  })}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Ciclo Fin:</label>
+                <input 
+                  type="number"
+                  value={newCeapData.ciclo_fin}
+                  onChange={(e) => setNewCeapData({
+                    ...newCeapData, 
+                    ciclo_fin: parseInt(e.target.value)
+                  })}
+                />
+              </div>
+              
+              <p className="modal-info">
+                <strong>Nota:</strong> Se crearán automáticamente todas las fases de implementación para este CEaP.
+              </p>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                className="btn btn-success"
+                onClick={handleCreateCeap}
+                disabled={saving}
+              >
+                <Plus size={18} /> Crear CEaP
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setShowNewCeapModal(false)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
-};
+  );};
 
 export default PlanteleDetail;

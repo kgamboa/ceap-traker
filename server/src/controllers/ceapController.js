@@ -72,9 +72,9 @@ exports.getDashboardData = async (req, res) => {
 
 exports.createCEAP = async (req, res) => {
   try {
-    const { plantelId, cicloInicio, cicloFin } = req.body;
+    const { plantel_id, ciclo_inicio, ciclo_fin } = req.body;
     
-    const ceap = await CEaPModel.create(plantelId, cicloInicio, cicloFin);
+    const ceap = await CEaPModel.create(plantel_id, ciclo_inicio, ciclo_fin);
     
     // Inicializar todas las fases para este CEaP
     await CEaPFaseModel.initializeFasesForCEAP(ceap.id);

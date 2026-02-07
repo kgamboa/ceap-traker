@@ -1,5 +1,22 @@
 -- Script para insertar datos de ejemplo para testing
 
+-- Limpiar datos existentes
+DELETE FROM ceap_fases;
+DELETE FROM ceaps;
+DELETE FROM fases;
+DELETE FROM planteles;
+
+-- Insertar fases estándar de implementación
+INSERT INTO fases (nombre, numero_orden, descripcion) VALUES
+  ('Convocatoria', 1, 'Publicación y difusión de la convocatoria para participación de planteles en CEaP'),
+  ('Selección de Planteles', 2, 'Revisión y selección de planteles participantes en el programa'),
+  ('Diagnóstico Institucional', 3, 'Evaluación de la situación actual del plantel e identificación de necesidades'),
+  ('Diseño de Modelo CEaP', 4, 'Diseño del modelo de Centro de Enseñanza y Aprendizaje Práctico'),
+  ('Capacitación Inicial', 5, 'Capacitación de directivos y personal docente en metodología CEaP'),
+  ('Adquisición de Equipamiento', 6, 'Compra e instalación de equipamiento necesario'),
+  ('Implementación de Procesos', 7, 'Implementación de procesos y protocolos del CEaP'),
+  ('Seguimiento y Evaluación', 8, 'Monitoreo de avances y evaluación de resultados');
+
 -- Insertar 25 planteles con datos reales de DGETI Guanajuato
 INSERT INTO planteles (nombre, codigo, estado, municipio, director_email, director_nombre, telefono) VALUES
   ('CETIS No. 21', 'CF021', 'Guanajuato', 'León', 'cetis21.dir@dgeti.sems.gob.mx', 'Lic. Director CETIS 21', ''),
@@ -27,56 +44,3 @@ INSERT INTO planteles (nombre, codigo, estado, municipio, director_email, direct
   ('CBTIS No. 238', 'CB238', 'Guanajuato', 'Juventino Rosas', 'cbtis238.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 238', ''),
   ('CBTIS No. 255', 'CB255', 'Guanajuato', 'Tarimoro', 'cbtis255.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 255', ''),
   ('CBTIS No. 292', 'CB292', 'Guanajuato', 'San Luis de la Paz', 'cbtis292.dir@dgeti.sems.gob.mx', 'Lic. Director CBTIS 292', '');
-
--- Insertar CEaPs para cada plantel (ciclos 2024-2026 y 2025-2027)
-WITH plantel_ids AS (
-  SELECT id FROM planteles ORDER BY nombre LIMIT 25
-)
-INSERT INTO ceaps (plantel_id, ciclo_inicio, ciclo_fin)
-SELECT id, 2024, 2026 FROM plantel_ids
-UNION ALL
-SELECT id, 2025, 2027 FROM plantel_ids;
-
--- Inicializar fases para cada CEaP
-WITH ceap_list AS (
-  SELECT id FROM ceaps
-),
-fase_list AS (
-  SELECT id FROM fases ORDER BY numero_orden
-)
-INSERT INTO ceap_fases (ceap_id, fase_id, estado)
-SELECT DISTINCT ceap_list.id, fase_list.id, 'no_iniciado'
-FROM ceap_list, fase_list
-ON CONFLICT (ceap_id, fase_id) DO NOTHING;
-
--- Actualizar algunos registros con datos de ejemplo realistas
-UPDATE ceap_fases
-SET estado = 'completado', 
-    completado = true,
-    fecha_conclusión = CURRENT_DATE - INTERVAL '30 days'
-WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 1)
-LIMIT 20;
-
-UPDATE ceap_fases
-SET estado = 'en_progreso', 
-    fecha_estimada = CURRENT_DATE + INTERVAL '30 days'
-WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 2)
-LIMIT 25;
-
-UPDATE ceap_fases
-SET estado = 'completado', 
-    completado = true,
-    fecha_conclusión = CURRENT_DATE - INTERVAL '10 days'
-WHERE fase_id = (SELECT id FROM fases WHERE numero_orden = 3)
-LIMIT 18;
-
--- Actualizar porcentajes de avance
-UPDATE ceaps c
-SET porcentaje_avance = (
-  SELECT ROUND(100.0 * SUM(CASE WHEN completado = true THEN 1 ELSE 0 END) / COUNT(*), 0)
-  FROM ceap_fases cf
-  WHERE cf.ceap_id = c.id
-)
-WHERE EXISTS (
-  SELECT 1 FROM ceap_fases WHERE ceap_id = c.id
-);
