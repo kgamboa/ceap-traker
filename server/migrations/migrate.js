@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const pool = require('./config/database');
+const pool = require('../src/config/database');
 require('dotenv').config();
 
 async function runMigrations() {
