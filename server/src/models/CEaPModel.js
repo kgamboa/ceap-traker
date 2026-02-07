@@ -97,3 +97,6 @@ class CEaPModel {
     );
     return result.rows[0];
   }
+}
+
+module.exports = CEaPModel;
