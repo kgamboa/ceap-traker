@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
+import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 
 export const PlanteleDetail = ({ plantel, onBack }) => {
+  const { isAdmin } = useRole();
   const [ceaps, setCeaps] = useState([]);
   const [selectedCeap, setSelectedCeap] = useState(null);
   const [fases, setFases] = useState([]);
@@ -287,12 +289,14 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="no-ceap">
           <AlertCircle size={48} />
           <p>No hay CEAP registrado para este plantel</p>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowNewCeapModal(true)}
-          >
-            <Plus size={18} /> Crear Nuevo CEAP
-          </button>
+          {isAdmin && (
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowNewCeapModal(true)}
+            >
+              <Plus size={18} /> Crear Nuevo CEAP
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -311,19 +315,23 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               </select>
             </div>
             <div className="ceap-selector-buttons">
-              <button 
-                className="btn btn-primary"
-                onClick={() => setShowNewCeapModal(true)}
-              >
-                <Plus size={18} /> Nuevo CEAP
-              </button>
-              <button 
-                className="btn btn-danger"
-                onClick={handleDeleteCeap}
-                disabled={saving}
-              >
-                <Trash2 size={18} /> Eliminar
-              </button>
+              {isAdmin && (
+                <>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => setShowNewCeapModal(true)}
+                  >
+                    <Plus size={18} /> Nuevo CEAP
+                  </button>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={handleDeleteCeap}
+                    disabled={saving}
+                  >
+                    <Trash2 size={18} /> Eliminar
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
