@@ -3,7 +3,11 @@ import { ceapService, planteleService, exportService } from '../services/api';
 import { ProgressBar, StatCard, PlanteleCard } from '../components/SharedComponents';
 import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import '../styles/Dashboard.css';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const Dashboard = ({ onPlanteleSelect }) => {
   const { isAdmin } = useRole();
@@ -55,6 +59,20 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         }
       });
       setCeapMap(map);
+      
+      // Contar planteles completados (con 100% de avance)
+      let planteleCompletados = 0;
+      Object.values(map).forEach(ceap => {
+        if (ceap.porcentaje_avance === 100) {
+          planteleCompletados++;
+        }
+      });
+      
+      // Actualizar estadísticas con planteles completados
+      if (dashRes.data.estadisticas) {
+        dashRes.data.estadisticas.planteleCompletados = planteleCompletados;
+      }
+      setDashboardData(dashRes.data);
     } catch (err) {
       console.error(err);
       setError('Error al cargar los datos del dashboard');
@@ -94,7 +112,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
     try {
       setSavingPlantel(true);
-      const response = await planteleService.create(newPlantelData);
+      await planteleService.create(newPlantelData);
       setShowNewPlantelModal(false);
       setNewPlantelData({
         nombre: '',
@@ -162,8 +180,8 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           color="blue"
         />
         <StatCard 
-          title="Fases Completadas" 
-          value={`${stats.totalFasesCompletadas || 0}/${stats.totalFases || 0}`}
+          title="Planteles Completados" 
+          value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0}`}
           icon={<BarChart3 size={24} />}
           color="green"
         />
@@ -176,8 +194,62 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       </div>
 
       <div className="progress-section">
-        <h2>Avance Global</h2>
-        <ProgressBar percentage={stats.porcentajeGlobal || 0} size="lg" />
+        <h2>Avance Global por Plantel</h2>
+        {planteles.length > 0 && (
+          <div className="chart-container">
+            <Bar
+              data={{
+                labels: planteles.map(p => p.nombre),
+                datasets: [
+                  {
+                    label: 'Porcentaje de Avance (%)',
+                    data: planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0),
+                    backgroundColor: planteles.map(p => {
+                      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
+                      if (avance === 100) return '#10b981';
+                      if (avance >= 75) return '#3b82f6';
+                      if (avance >= 50) return '#f59e0b';
+                      if (avance >= 25) return '#ef6444';
+                      return '#9ca3af';
+                    }),
+                    borderRadius: 4,
+                    borderSkipped: false,
+                  }
+                ]
+              }}
+              options={{
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top',
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return context.parsed.x + '%';
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                      callback: function(value) {
+                        return value + '%';
+                      }
+                    }
+                  }
+                }
+              }}
+              height={Math.max(400, planteles.length * 30)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="planteles-section">

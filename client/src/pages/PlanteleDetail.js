@@ -65,9 +65,27 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   };
 
   const handleSaveFase = async () => {
+    // Validar fechas según el estado
+    if (editData.estado === 'completado') {
+      if (!editData.fecha_conclusión) {
+        alert('La fecha de conclusión es obligatoria cuando el estado es completado');
+        return;
+      }
+    } else if (editData.estado === 'no_iniciado' || editData.estado === 'en_progreso') {
+      if (!editData.fecha_estimada) {
+        alert('La fecha estimada es obligatoria cuando el estado es no iniciado o en progreso');
+        return;
+      }
+    }
+
     try {
       setSaving(true);
-      await ceapService.updateFase(editingFaseId, editData);
+      // Si estado es completado, establecer completado como true
+      const dataToSave = {
+        ...editData,
+        completado: editData.estado === 'completado'
+      };
+      await ceapService.updateFase(editingFaseId, dataToSave);
       setEditingFaseId(null);
       fetchFases(selectedCeap.id);
       // Recargar CEAPs para actualizar avances
@@ -283,6 +301,16 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
             </>
           )}
         </div>
+
+        {selectedCeap && (
+          <div className="ceap-progress-card">
+            <h3>Avance CEAP {selectedCeap.ciclo_inicio}-{selectedCeap.ciclo_fin}</h3>
+            <div className="progress-display">
+              <div className="progress-percentage">{selectedCeap.porcentaje_avance || 0}%</div>
+              <ProgressBar percentage={selectedCeap.porcentaje_avance || 0} size="lg" />
+            </div>
+          </div>
+        )}
       </div>
 
       {ceaps.length === 0 ? (
@@ -337,11 +365,6 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
 
           {selectedCeap && (
             <>
-              <div className="ceap-progress">
-                <h2>Avance del CEAP {selectedCeap.ciclo_inicio}-{selectedCeap.ciclo_fin}</h2>
-                <ProgressBar percentage={selectedCeap.porcentaje_avance || 0} size="lg" />
-              </div>
-
               <div className="fases-section">
                 <div className="fases-header">
                   <h2>Fases de Implementación</h2>
@@ -370,22 +393,27 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                           </div>
 
                           <div className="form-row">
-                            <div className="form-group">
-                              <label>Fecha de Conclusión:</label>
-                              <input 
-                                type="date"
-                                value={editData.fecha_conclusión || ''}
-                                onChange={(e) => setEditData({...editData, fecha_conclusión: e.target.value})}
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label>Fecha Estimada:</label>
-                              <input 
-                                type="date"
-                                value={editData.fecha_estimada || ''}
-                                onChange={(e) => setEditData({...editData, fecha_estimada: e.target.value})}
-                              />
-                            </div>
+                            {editData.estado === 'completado' ? (
+                              <div className="form-group">
+                                <label>Fecha de Conclusión: <span className="required">*</span></label>
+                                <input 
+                                  type="date"
+                                  value={editData.fecha_conclusión || ''}
+                                  onChange={(e) => setEditData({...editData, fecha_conclusión: e.target.value})}
+                                  required
+                                />
+                              </div>
+                            ) : (
+                              <div className="form-group">
+                                <label>Fecha Estimada: <span className="required">*</span></label>
+                                <input 
+                                  type="date"
+                                  value={editData.fecha_estimada || ''}
+                                  onChange={(e) => setEditData({...editData, fecha_estimada: e.target.value})}
+                                  required
+                                />
+                              </div>
+                            )}
                           </div>
 
                           <div className="form-group">
@@ -395,17 +423,6 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                               onChange={(e) => setEditData({...editData, observaciones: e.target.value})}
                               rows="3"
                             />
-                          </div>
-
-                          <div className="form-group">
-                            <label>
-                              <input 
-                                type="checkbox"
-                                checked={editData.completado || false}
-                                onChange={(e) => setEditData({...editData, completado: e.target.checked})}
-                              />
-                              Marcar como Completado
-                            </label>
                           </div>
 
                           <div className="form-actions">

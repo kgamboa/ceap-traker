@@ -50,6 +50,12 @@ export const FaseStatus = ({ fase }) => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
+  };
+
   return (
     <div className="fase-status">
       <div className="fase-status-header">
@@ -61,18 +67,20 @@ export const FaseStatus = ({ fase }) => {
           {getStatusLabel(fase.estado)}
         </span>
       </div>
-      {fase.fecha_conclusión && (
-        <p className="fase-date">
-          <strong>Conclusión:</strong> {new Date(fase.fecha_conclusión).toLocaleDateString('es-MX')}
-        </p>
-      )}
-      {fase.fecha_estimada && (
-        <p className="fase-date">
-          <strong>Estimada:</strong> {new Date(fase.fecha_estimada).toLocaleDateString('es-MX')}
-        </p>
-      )}
+      <div className="fase-info-compact">
+        {fase.fecha_conclusión && (
+          <p className="fase-date-compact">
+            <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
+          </p>
+        )}
+        {fase.fecha_estimada && (
+          <p className="fase-date-compact">
+            <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
+          </p>
+        )}
+      </div>
       {fase.observaciones && (
-        <p className="fase-notes">{fase.observaciones}</p>
+        <p className="fase-notes-compact">{fase.observaciones}</p>
       )}
     </div>
   );

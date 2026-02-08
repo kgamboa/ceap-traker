@@ -5,7 +5,7 @@ import { useRole } from './hooks/useRole';
 import './App.css';
 
 function App() {
-  const { role, setRole, isAdmin } = useRole();
+  const { role, setRole } = useRole();
   const [view, setView] = useState('dashboard'); // 'dashboard' o 'detail'
   const [selectedPlantel, setSelectedPlantel] = useState(null);
 
