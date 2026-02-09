@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
-import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 
 export const PlanteleDetail = ({ plantel, onBack }) => {
-  const { isAdmin } = useRole();
   const [ceaps, setCeaps] = useState([]);
   const [selectedCeap, setSelectedCeap] = useState(null);
   const [fases, setFases] = useState([]);
@@ -142,13 +140,13 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         ciclo_inicio: newCeapData.ciclo_inicio,
         ciclo_fin: newCeapData.ciclo_fin
       });
-      
+
       setShowNewCeapModal(false);
       setNewCeapData({
         ciclo_inicio: new Date().getFullYear(),
         ciclo_fin: new Date().getFullYear() + 1
       });
-      
+
       // Recargar los CEaPs
       const response = await ceapService.getByPlantel(plantel.id);
       setCeaps(response.data);
@@ -168,13 +166,13 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
 
   const handleDeleteCeap = async () => {
     if (!selectedCeap) return;
-    
+
     const confirmed = window.confirm(
       `¿Está seguro de que desea eliminar el CEAP ${selectedCeap.ciclo_inicio}-${selectedCeap.ciclo_fin}? Esta acción no se puede deshacer.`
     );
-    
+
     if (!confirmed) return;
-    
+
     try {
       setSaving(true);
       await ceapService.delete(selectedCeap.id);
@@ -208,7 +206,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="info-card">
           <div className="info-card-header">
             <h3>Información del Plantel</h3>
-            <button 
+            <button
               className="btn btn-sm btn-primary"
               onClick={() => {
                 setEditingPlantel(true);
@@ -218,72 +216,72 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               <Edit2 size={16} /> Editar
             </button>
           </div>
-          
+
           {editingPlantel ? (
             <div className="plantel-editor">
               <div className="form-group">
                 <label>Nombre del Plantel:</label>
-                <input 
+                <input
                   type="text"
                   value={plantelData.nombre || ''}
-                  onChange={(e) => setPlantelData({...plantelData, nombre: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, nombre: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Director:</label>
-                <input 
+                <input
                   type="text"
                   value={plantelData.director_nombre || ''}
-                  onChange={(e) => setPlantelData({...plantelData, director_nombre: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, director_nombre: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Email:</label>
-                <input 
+                <input
                   type="email"
                   value={plantelData.director_email || ''}
-                  onChange={(e) => setPlantelData({...plantelData, director_email: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, director_email: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Teléfono:</label>
-                <input 
+                <input
                   type="text"
                   value={plantelData.telefono || ''}
-                  onChange={(e) => setPlantelData({...plantelData, telefono: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, telefono: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Municipio:</label>
-                <input 
+                <input
                   type="text"
                   value={plantelData.municipio || ''}
-                  onChange={(e) => setPlantelData({...plantelData, municipio: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, municipio: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Estado:</label>
-                <input 
+                <input
                   type="text"
                   value={plantelData.estado || ''}
-                  onChange={(e) => setPlantelData({...plantelData, estado: e.target.value})}
+                  onChange={(e) => setPlantelData({ ...plantelData, estado: e.target.value })}
                 />
               </div>
-              
+
               <div className="form-actions">
-                <button 
+                <button
                   className="btn btn-success"
                   onClick={handleSavePlantel}
                   disabled={saving}
                 >
                   <Save size={18} /> Guardar
                 </button>
-                <button 
+                <button
                   className="btn btn-secondary"
                   onClick={() => setEditingPlantel(false)}
                 >
@@ -317,22 +315,20 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="no-ceap">
           <AlertCircle size={48} />
           <p>No hay CEAP registrado para este plantel</p>
-          {isAdmin && (
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowNewCeapModal(true)}
-            >
-              <Plus size={18} /> Crear Nuevo CEAP
-            </button>
-          )}
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowNewCeapModal(true)}
+          >
+            <Plus size={18} /> Crear Nuevo CEAP
+          </button>
         </div>
       ) : (
         <>
           <div className="ceap-selector">
             <div className="ceap-selector-left">
               <label><strong>Seleccionar CEAP:</strong></label>
-              <select 
-                value={selectedCeap?.id || ''} 
+              <select
+                value={selectedCeap?.id || ''}
                 onChange={(e) => setSelectedCeap(ceaps.find(c => c.id === e.target.value))}
               >
                 {ceaps.map(ceap => (
@@ -343,23 +339,19 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               </select>
             </div>
             <div className="ceap-selector-buttons">
-              {isAdmin && (
-                <>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => setShowNewCeapModal(true)}
-                  >
-                    <Plus size={18} /> Nuevo CEAP
-                  </button>
-                  <button 
-                    className="btn btn-danger"
-                    onClick={handleDeleteCeap}
-                    disabled={saving}
-                  >
-                    <Trash2 size={18} /> Eliminar
-                  </button>
-                </>
-              )}
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowNewCeapModal(true)}
+              >
+                <Plus size={18} /> Nuevo CEAP
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteCeap}
+                disabled={saving}
+              >
+                <Trash2 size={18} /> Eliminar
+              </button>
             </div>
           </div>
 
@@ -379,12 +371,12 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                       {editingFaseId === fase.id ? (
                         <div className="fase-editor">
                           <h4>{fase.fase_nombre}</h4>
-                          
+
                           <div className="form-group">
                             <label>Estado:</label>
-                            <select 
+                            <select
                               value={editData.estado || ''}
-                              onChange={(e) => setEditData({...editData, estado: e.target.value})}
+                              onChange={(e) => setEditData({ ...editData, estado: e.target.value })}
                             >
                               <option value="no_iniciado">No Iniciado</option>
                               <option value="en_progreso">En Progreso</option>
@@ -396,20 +388,20 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                             {editData.estado === 'completado' ? (
                               <div className="form-group">
                                 <label>Fecha de Conclusión: <span className="required">*</span></label>
-                                <input 
+                                <input
                                   type="date"
                                   value={editData.fecha_conclusión || ''}
-                                  onChange={(e) => setEditData({...editData, fecha_conclusión: e.target.value})}
+                                  onChange={(e) => setEditData({ ...editData, fecha_conclusión: e.target.value })}
                                   required
                                 />
                               </div>
                             ) : (
                               <div className="form-group">
                                 <label>Fecha Estimada: <span className="required">*</span></label>
-                                <input 
+                                <input
                                   type="date"
                                   value={editData.fecha_estimada || ''}
-                                  onChange={(e) => setEditData({...editData, fecha_estimada: e.target.value})}
+                                  onChange={(e) => setEditData({ ...editData, fecha_estimada: e.target.value })}
                                   required
                                 />
                               </div>
@@ -418,22 +410,22 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
 
                           <div className="form-group">
                             <label>Observaciones:</label>
-                            <textarea 
+                            <textarea
                               value={editData.observaciones || ''}
-                              onChange={(e) => setEditData({...editData, observaciones: e.target.value})}
+                              onChange={(e) => setEditData({ ...editData, observaciones: e.target.value })}
                               rows="3"
                             />
                           </div>
 
                           <div className="form-actions">
-                            <button 
+                            <button
                               className="btn btn-success"
                               onClick={handleSaveFase}
                               disabled={saving}
                             >
                               <Save size={18} /> Guardar
                             </button>
-                            <button 
+                            <button
                               className="btn btn-secondary"
                               onClick={() => setEditingFaseId(null)}
                             >
@@ -444,7 +436,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                       ) : (
                         <>
                           <FaseStatus fase={fase} />
-                          <button 
+                          <button
                             className="btn btn-sm btn-primary"
                             onClick={() => handleEditFase(fase.id, fase)}
                           >
@@ -467,53 +459,53 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Crear Nuevo CEAP</h2>
-              <button 
+              <button
                 className="btn-close"
                 onClick={() => setShowNewCeapModal(false)}
               >
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="modal-body">
               <div className="form-group">
                 <label>Ciclo Inicio:</label>
-                <input 
+                <input
                   type="number"
                   value={newCeapData.ciclo_inicio}
                   onChange={(e) => setNewCeapData({
-                    ...newCeapData, 
+                    ...newCeapData,
                     ciclo_inicio: parseInt(e.target.value)
                   })}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Ciclo Fin:</label>
-                <input 
+                <input
                   type="number"
                   value={newCeapData.ciclo_fin}
                   onChange={(e) => setNewCeapData({
-                    ...newCeapData, 
+                    ...newCeapData,
                     ciclo_fin: parseInt(e.target.value)
                   })}
                 />
               </div>
-              
+
               <p className="modal-info">
                 <strong>Nota:</strong> Se crearán automáticamente todas las fases de implementación para este CEAP.
               </p>
             </div>
-            
+
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn btn-success"
                 onClick={handleCreateCeap}
                 disabled={saving}
               >
                 <Plus size={18} /> Crear CEAP
               </button>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => setShowNewCeapModal(false)}
                 disabled={saving}
@@ -525,6 +517,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         </div>
       )}
     </div>
-  );};
+  );
+};
 
 export default PlanteleDetail;

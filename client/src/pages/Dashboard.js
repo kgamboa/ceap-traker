@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { ProgressBar, StatCard, PlanteleCard } from '../components/SharedComponents';
 import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
-import { useRole } from '../hooks/useRole';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import '../styles/Dashboard.css';
@@ -10,7 +9,6 @@ import '../styles/Dashboard.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const Dashboard = ({ onPlanteleSelect }) => {
-  const { isAdmin } = useRole();
   const [dashboardData, setDashboardData] = useState(null);
   const [planteles, setPlanteles] = useState([]);
   const [ceapMap, setCeapMap] = useState({});
@@ -31,12 +29,12 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Recargar datos cada 30 segundos para mantenerlos actualizados
     const interval = setInterval(() => {
       fetchDashboardData();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -59,7 +57,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         }
       });
       setCeapMap(map);
-      
+
       // Contar planteles completados (con 100% de avance)
       let planteleCompletados = 0;
       Object.values(map).forEach(ceap => {
@@ -67,7 +65,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           planteleCompletados++;
         }
       });
-      
+
       // Actualizar estadísticas con planteles completados
       if (dashRes.data.estadisticas) {
         dashRes.data.estadisticas.planteleCompletados = planteleCompletados;
@@ -123,7 +121,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         director_email: '',
         telefono: ''
       });
-      
+
       // Recargar planteles
       const plantelesRes = await planteleService.getAll();
       setPlanteles(plantelesRes.data);
@@ -154,15 +152,13 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           <p>Seguimiento del Comité Escolar de Administración Participativa en DGETI</p>
         </div>
         <div className="dashboard-actions">
-          {isAdmin && (
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowNewPlantelModal(true)}
-            >
-              <Plus size={18} /> Agregar Plantel
-            </button>
-          )}
-          <button 
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowNewPlantelModal(true)}
+          >
+            <Plus size={18} /> Agregar Plantel
+          </button>
+          <button
             className="btn btn-primary"
             onClick={handleExportExcel}
             disabled={exporting}
@@ -173,20 +169,20 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       </div>
 
       <div className="stats-grid">
-        <StatCard 
-          title="Total Planteles" 
+        <StatCard
+          title="Total Planteles"
           value={stats.totalPlanteles || 0}
           icon={<BarChart3 size={24} />}
           color="blue"
         />
-        <StatCard 
-          title="Planteles Completados" 
+        <StatCard
+          title="Planteles Completados"
           value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0}`}
           icon={<BarChart3 size={24} />}
           color="green"
         />
-        <StatCard 
-          title="Avance Global" 
+        <StatCard
+          title="Avance Global"
           value={`${stats.porcentajeGlobal || 0}%`}
           icon={<BarChart3 size={24} />}
           color="purple"
@@ -228,7 +224,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                   },
                   tooltip: {
                     callbacks: {
-                      label: function(context) {
+                      label: function (context) {
                         return context.parsed.x + '%';
                       }
                     }
@@ -239,7 +235,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                     beginAtZero: true,
                     max: 100,
                     ticks: {
-                      callback: function(value) {
+                      callback: function (value) {
                         return value + '%';
                       }
                     }
@@ -272,85 +268,85 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Agregar Nuevo Plantel</h2>
-              <button 
+              <button
                 className="btn-close"
                 onClick={() => setShowNewPlantelModal(false)}
               >
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="modal-body">
               <div className="form-group">
                 <label>Nombre del Plantel: <span className="required">*</span></label>
-                <input 
+                <input
                   type="text"
                   value={newPlantelData.nombre}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, nombre: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, nombre: e.target.value })}
                   placeholder="Ej: CETIS No. 21"
                 />
               </div>
 
               <div className="form-group">
                 <label>Código: <span className="required">*</span></label>
-                <input 
+                <input
                   type="text"
                   value={newPlantelData.codigo}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, codigo: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, codigo: e.target.value })}
                   placeholder="Ej: CF021"
                 />
               </div>
 
               <div className="form-group">
                 <label>Municipio:</label>
-                <input 
+                <input
                   type="text"
                   value={newPlantelData.municipio}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, municipio: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, municipio: e.target.value })}
                   placeholder="Ej: León"
                 />
               </div>
 
               <div className="form-group">
                 <label>Director:</label>
-                <input 
+                <input
                   type="text"
                   value={newPlantelData.director_nombre}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, director_nombre: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, director_nombre: e.target.value })}
                   placeholder="Nombre del director"
                 />
               </div>
 
               <div className="form-group">
                 <label>Email del Director:</label>
-                <input 
+                <input
                   type="email"
                   value={newPlantelData.director_email}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, director_email: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, director_email: e.target.value })}
                   placeholder="director@ejemplo.com"
                 />
               </div>
 
               <div className="form-group">
                 <label>Teléfono:</label>
-                <input 
+                <input
                   type="text"
                   value={newPlantelData.telefono}
-                  onChange={(e) => setNewPlantelData({...newPlantelData, telefono: e.target.value})}
+                  onChange={(e) => setNewPlantelData({ ...newPlantelData, telefono: e.target.value })}
                   placeholder="Teléfono de contacto"
                 />
               </div>
             </div>
-            
+
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn btn-success"
                 onClick={handleCreatePlantel}
                 disabled={savingPlantel}
               >
                 <Plus size={18} /> Crear Plantel
               </button>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => setShowNewPlantelModal(false)}
                 disabled={savingPlantel}
