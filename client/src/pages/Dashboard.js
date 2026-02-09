@@ -15,7 +15,6 @@ const highlightZeroPlugin = {
   afterDraw: (chart) => {
     const ctx = chart.ctx;
     const yAxis = chart.scales.y;
-    const xAxis = chart.scales.x;
 
     chart.data.datasets[0].data.forEach((value, index) => {
       if (value === 0) {
