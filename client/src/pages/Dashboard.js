@@ -9,6 +9,38 @@ import '../styles/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
+// Plugin para marcar con fondo amarillo los planteles sin captura
+const highlightZeroPlugin = {
+  id: 'highlightZero',
+  afterDraw: (chart) => {
+    const ctx = chart.ctx;
+    const yAxis = chart.scales.y;
+    const xAxis = chart.scales.x;
+
+    chart.data.datasets[0].data.forEach((value, index) => {
+      if (value === 0) {
+        const y = yAxis.getPixelForTick(index);
+        const tickLabel = yAxis._labelItems[index];
+
+        if (tickLabel) {
+          // Draw yellow background
+          ctx.save();
+          ctx.fillStyle = '#fef08a'; // yellow-200
+          const padding = 4;
+          const textWidth = ctx.measureText(tickLabel.label).width;
+          const rectX = tickLabel.translation[0] - textWidth - padding;
+          const rectY = y - tickLabel.font.size / 2 - padding;
+          const rectWidth = textWidth + padding * 2;
+          const rectHeight = tickLabel.font.size + padding * 2;
+
+          ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+          ctx.restore();
+        }
+      }
+    });
+  }
+};
+
 export const Dashboard = ({ onPlanteleSelect }) => {
   const [dashboardData, setDashboardData] = useState(null);
   const [planteles, setPlanteles] = useState([]);
@@ -151,7 +183,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         />
         <StatCard
           title="Planteles Completados"
-          value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0}`}
+          value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0} (${stats.totalPlanteles > 0 ? Math.round((stats.planteleCompletados / stats.totalPlanteles) * 100) : 0}%)`}
           icon={<BarChart3 size={24} />}
           color="green"
         />
@@ -187,6 +219,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                   }
                 ]
               }}
+              plugins={[highlightZeroPlugin]}
               options={{
                 indexAxis: 'y',
                 responsive: true,
