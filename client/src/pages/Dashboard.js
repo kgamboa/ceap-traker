@@ -222,7 +222,12 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                 datasets: [
                   {
                     label: 'Porcentaje de Avance (%)',
-                    data: planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0),
+                    data: planteles.map(p => {
+                      let avance = ceapMap[p.id]?.porcentaje_avance || 0;
+                      // Forzar a 100 si está muy cerca de 100 por redondeo
+                      if (avance >= 99.5) return 100;
+                      return avance;
+                    }),
                     backgroundColor: planteles.map(p => {
                       const avance = ceapMap[p.id]?.porcentaje_avance || 0;
                       if (avance === 100) return '#10b981';
