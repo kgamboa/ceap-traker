@@ -27,22 +27,34 @@ class CEaPModel {
 
   static async getAllWithProgress() {
     const result = await pool.query(
-      `SELECT 
-        c.id,
-        c.plantel_id,
+      `WITH ceaps_recientes AS (
+        SELECT DISTINCT ON (plantel_id)
+          c.id,
+          c.plantel_id,
+          c.ciclo_inicio,
+          c.ciclo_fin,
+          c.estado,
+          c.porcentaje_avance,
+          c.created_at
+        FROM ceaps c
+        ORDER BY c.plantel_id, c.created_at DESC
+      )
+      SELECT 
+        cr.id,
+        cr.plantel_id,
         p.nombre as plantel_nombre,
         p.codigo as plantel_codigo,
-        c.ciclo_inicio,
-        c.ciclo_fin,
-        c.estado,
-        c.porcentaje_avance,
-        c.created_at,
+        cr.ciclo_inicio,
+        cr.ciclo_fin,
+        cr.estado,
+        cr.porcentaje_avance,
+        cr.created_at,
         COUNT(cf.id) as total_fases,
         COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
-       FROM ceaps c
-       JOIN planteles p ON c.plantel_id = p.id
-       LEFT JOIN ceap_fases cf ON c.id = cf.ceap_id
-       GROUP BY c.id, p.id
+       FROM ceaps_recientes cr
+       JOIN planteles p ON cr.plantel_id = p.id
+       LEFT JOIN ceap_fases cf ON cr.id = cf.ceap_id
+       GROUP BY cr.id, cr.plantel_id, p.nombre, p.codigo, cr.ciclo_inicio, cr.ciclo_fin, cr.estado, cr.porcentaje_avance, cr.created_at
        ORDER BY p.nombre`,
       []
     );

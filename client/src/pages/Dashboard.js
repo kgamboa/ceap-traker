@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
+import { Download, BarChart3, AlertCircle, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -49,6 +49,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
   const [exporting, setExporting] = useState(false);
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -195,8 +196,25 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       </div>
 
       <div className="progress-section">
-        <h2>Avance Global por Plantel</h2>
-        {planteles.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowChart(!showChart)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            {showChart ? (
+              <>
+                <ChevronUp size={18} /> Ocultar Gráfica
+              </>
+            ) : (
+              <>
+                <ChevronDown size={18} /> Mostrar Gráfica
+              </>
+            )}
+          </button>
+        </div>
+        {showChart && planteles.length > 0 && (
           <div className="chart-container">
             <Bar
               data={{
