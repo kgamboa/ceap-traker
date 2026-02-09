@@ -284,12 +284,25 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                 scales: {
                   x: {
                     beginAtZero: true,
+                    min: 0,
                     max: 100,
+                    grace: 0,
                     ticks: {
+                      stepSize: 10,
                       callback: function (value) {
                         return value + '%';
                       }
                     }
+                  },
+                  y: {
+                    ticks: {
+                      autoSkip: false
+                    }
+                  }
+                },
+                layout: {
+                  padding: {
+                    right: 30
                   }
                 }
               }}
