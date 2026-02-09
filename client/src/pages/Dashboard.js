@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
-import { ProgressBar, StatCard, PlanteleCard } from '../components/SharedComponents';
+import { StatCard, PlanteleCard } from '../components/SharedComponents';
 import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
