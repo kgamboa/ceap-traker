@@ -53,7 +53,11 @@ class CEaPFaseModel {
 
   static async update(ceapFaseId, datos) {
     const { estado, fecha_conclusión, fecha_estimada, observaciones, completado } = datos;
-    
+
+    // Convert empty string dates to null
+    const safeFechaConclusion = fecha_conclusión === '' ? null : fecha_conclusión;
+    const safeFechaEstimada = fecha_estimada === '' ? null : fecha_estimada;
+
     const result = await pool.query(
       `UPDATE ceap_fases
        SET estado = COALESCE($1, estado),
@@ -65,9 +69,9 @@ class CEaPFaseModel {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $6
        RETURNING *`,
-      [estado, fecha_conclusión, fecha_estimada, observaciones, completado, ceapFaseId]
+      [estado, safeFechaConclusion, safeFechaEstimada, observaciones, completado, ceapFaseId]
     );
-    
+
     return result.rows[0];
   }
 
