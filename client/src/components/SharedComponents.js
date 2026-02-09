@@ -76,7 +76,8 @@ export const FaseStatus = ({ fase }) => {
             <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
           </p>
         )}
-        {fase.fecha_estimada && (
+        {/* Mostrar Est solo si no está concluido */}
+        {fase.fecha_estimada && !fase.fecha_conclusión && (
           <p className="fase-date-compact">
             <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
           </p>
