@@ -50,6 +50,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
   const [showChart, setShowChart] = useState(false);
+  const [chartKey, setChartKey] = useState(0);
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -82,6 +83,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           map[ceap.plantel_id] = ceap;
         }
       });
+      console.log('CEAPs con fases:', dashRes.data.ceaps.map(c => ({ id: c.id, plantel_id: c.plantel_id, fases: c.fases })));
       setCeapMap(map);
     } catch (err) {
       console.error(err);
@@ -200,7 +202,13 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
           <button
             className="btn btn-secondary"
-            onClick={() => setShowChart(!showChart)}
+            onClick={() => {
+              setShowChart(!showChart);
+              // Incrementar chartKey para forzar re-render del gráfico
+              if (!showChart) {
+                setChartKey(prev => prev + 1);
+              }
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             {showChart ? (
@@ -215,8 +223,9 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           </button>
         </div>
         {showChart && planteles.length > 0 && (
-          <div className="chart-container">
+          <div className="chart-container" key={chartKey}>
             <Bar
+              key={`chart-${chartKey}`}
               data={{
                 labels: planteles.map(p => p.nombre),
                 datasets: [

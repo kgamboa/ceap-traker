@@ -100,7 +100,12 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
 
   // Obtener última fase completada o fases en proceso
   const getFaseInfo = () => {
-    if (!ceap || !ceap.fases) return null;
+    if (!ceap || !ceap.fases) {
+      console.log('Plantel sin fases:', plantel.nombre, 'ceap:', ceap);
+      return null;
+    }
+    
+    console.log('Fases para', plantel.nombre, ':', ceap.fases);
     
     // Buscar fases en proceso
     const enProceso = ceap.fases.filter(f => f.estado === 'en_progreso');
