@@ -98,6 +98,28 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
     return 'Sin CEAP';
   };
 
+  // Obtener última fase completada o fases en proceso
+  const getFaseInfo = () => {
+    if (!ceap || !ceap.fases) return null;
+    
+    // Buscar fases en proceso
+    const enProceso = ceap.fases.filter(f => f.estado === 'en_progreso');
+    if (enProceso.length > 0) {
+      return { tipo: 'en_progreso', fases: enProceso };
+    }
+    
+    // Si no hay en proceso, buscar última completada
+    const completadas = ceap.fases.filter(f => f.completado || f.estado === 'completado');
+    if (completadas.length > 0) {
+      const ultima = completadas[completadas.length - 1];
+      return { tipo: 'completado', fases: [ultima] };
+    }
+    
+    return null;
+  };
+
+  const faseInfo = getFaseInfo();
+
   return (
     <div className="plantel-card" onClick={onClick}>
       <div className="plantel-card-header">
@@ -128,6 +150,21 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
                 }}
               />
             </div>
+          </div>
+        )}
+        {faseInfo && (
+          <div style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280' }}>
+            {faseInfo.tipo === 'en_progreso' ? (
+              <div>
+                <strong style={{ color: '#f59e0b' }}>En Proceso:</strong>{' '}
+                {faseInfo.fases.map(f => f.fase_nombre).join(', ')}
+              </div>
+            ) : (
+              <div>
+                <strong style={{ color: '#10b981' }}>Última Completada:</strong>{' '}
+                {faseInfo.fases[0].fase_nombre}
+              </div>
+            )}
           </div>
         )}
       </div>

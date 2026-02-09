@@ -50,10 +50,21 @@ class CEaPModel {
         COALESCE(cr.porcentaje_avance, 0)::integer as porcentaje_avance,
         cr.created_at,
         COUNT(cf.id) as total_fases,
-        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
+        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas,
+        json_agg(
+          json_build_object(
+            'fase_id', cf.fase_id,
+            'fase_nombre', f.nombre,
+            'numero_orden', f.numero_orden,
+            'estado', cf.estado,
+            'completado', cf.completado,
+            'fecha_conclusión', cf.fecha_conclusión
+          ) ORDER BY f.numero_orden
+        ) FILTER (WHERE cf.id IS NOT NULL) as fases
        FROM ceaps_recientes cr
        JOIN planteles p ON cr.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON cr.id = cf.ceap_id
+       LEFT JOIN fases f ON cf.fase_id = f.id
        GROUP BY cr.id, cr.plantel_id, p.nombre, p.codigo, cr.ciclo_inicio, cr.ciclo_fin, cr.estado, cr.porcentaje_avance, cr.created_at
        ORDER BY p.nombre`,
       []
