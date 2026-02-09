@@ -58,7 +58,8 @@ exports.getDashboardData = async (req, res) => {
       totalFasesCompletadas += fasesComp;
 
       // Contar planteles completados (100% de avance)
-      if (ceap.porcentaje_avance === 100) {
+      const porcentaje = parseInt(ceap.porcentaje_avance) || 0;
+      if (porcentaje >= 100) {
         planteleCompletados++;
       }
     });

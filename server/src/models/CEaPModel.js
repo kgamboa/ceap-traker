@@ -47,7 +47,7 @@ class CEaPModel {
         cr.ciclo_inicio,
         cr.ciclo_fin,
         cr.estado,
-        cr.porcentaje_avance,
+        COALESCE(cr.porcentaje_avance, 0)::integer as porcentaje_avance,
         cr.created_at,
         COUNT(cf.id) as total_fases,
         COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
