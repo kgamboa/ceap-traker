@@ -30,13 +30,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   useEffect(() => {
     fetchDashboardData();
-
-    // Recargar datos cada 30 segundos para mantenerlos actualizados
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -58,20 +51,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         }
       });
       setCeapMap(map);
-
-      // Contar planteles completados (con 100% de avance)
-      let planteleCompletados = 0;
-      Object.values(map).forEach(ceap => {
-        if (ceap.porcentaje_avance === 100) {
-          planteleCompletados++;
-        }
-      });
-
-      // Actualizar estadísticas con planteles completados
-      if (dashRes.data.estadisticas) {
-        dashRes.data.estadisticas.planteleCompletados = planteleCompletados;
-      }
-      setDashboardData(dashRes.data);
     } catch (err) {
       console.error(err);
       setError('Error al cargar los datos del dashboard');

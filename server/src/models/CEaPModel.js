@@ -13,7 +13,7 @@ class CEaPModel {
     const result = await pool.query(
       `SELECT c.*, p.nombre as plantel_nombre,
         COUNT(cf.id) as total_fases,
-        SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END) as fases_completadas
+        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
        FROM ceaps c
        JOIN planteles p ON c.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON c.id = cf.ceap_id
@@ -38,7 +38,7 @@ class CEaPModel {
         c.porcentaje_avance,
         c.created_at,
         COUNT(cf.id) as total_fases,
-        SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END) as fases_completadas
+        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
        FROM ceaps c
        JOIN planteles p ON c.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON c.id = cf.ceap_id
