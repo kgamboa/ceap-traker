@@ -27,12 +27,12 @@ exports.updateCEAPFase = async (req, res) => {
   try {
     const { ceapFaseId } = req.params;
     const { ceapId } = req.body;
-    
+
     const faseActualizada = await CEaPFaseModel.update(ceapFaseId, req.body);
-    
+
     // Actualizar el porcentaje de avance del CEAP
     await CEaPModel.updateProgress(ceapId);
-    
+
     res.json(faseActualizada);
   } catch (error) {
     console.error(error);
@@ -43,24 +43,27 @@ exports.updateCEAPFase = async (req, res) => {
 exports.getDashboardData = async (req, res) => {
   try {
     const ceaps = await CEaPModel.getAllWithProgress();
-    
-    // Calcular estadísticas globales
-    let totalFases = 0;
+
+    // Calcular estadísticas globales considerando TODOS los 25 planteles
+    const PlanteleModel = require('../models/PlanteleModel');
+    const todosPlanteles = await PlanteleModel.getAll();
+    const totalPlanteles = todosPlanteles.length;
+
+    let totalFases = totalPlanteles * 7; // 7 fases por plantel
     let totalFasesCompletadas = 0;
     const planteleIds = new Set();
-    
+
     ceaps.forEach(ceap => {
-      totalFases += ceap.total_fases;
       totalFasesCompletadas += ceap.fases_completadas;
       planteleIds.add(ceap.plantel_id);
     });
-    
+
     const porcentajeGlobal = totalFases > 0 ? Math.round((totalFasesCompletadas / totalFases) * 100) : 0;
-    
+
     res.json({
       ceaps,
       estadisticas: {
-        totalPlanteles: planteleIds.size,
+        totalPlanteles: totalPlanteles,
         totalFases,
         totalFasesCompletadas,
         porcentajeGlobal
@@ -75,15 +78,15 @@ exports.getDashboardData = async (req, res) => {
 exports.createCEAP = async (req, res) => {
   try {
     const { plantel_id, ciclo_inicio, ciclo_fin } = req.body;
-    
+
     const ceap = await CEaPModel.create(plantel_id, ciclo_inicio, ciclo_fin);
-    
+
     // Inicializar todas las fases para este CEAP
     await CEaPFaseModel.initializeFasesForCEAP(ceap.id);
-    
+
     // Actualizar el porcentaje de avance inicial
     const updatedCeap = await CEaPModel.updateProgress(ceap.id);
-    
+
     res.status(201).json(updatedCeap);
   } catch (error) {
     console.error(error);
@@ -93,13 +96,13 @@ exports.createCEAP = async (req, res) => {
 exports.deleteCEAP = async (req, res) => {
   try {
     const { ceapId } = req.params;
-    
+
     const ceap = await CEaPModel.delete(ceapId);
-    
+
     if (!ceap) {
       return res.status(404).json({ error: 'CEAP no encontrado' });
     }
-    
+
     res.json({ message: 'CEAP eliminado correctamente', ceap });
   } catch (error) {
     console.error(error);

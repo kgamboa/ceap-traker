@@ -4,9 +4,10 @@ import { StatCard, PlanteleCard } from '../components/SharedComponents';
 import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
 export const Dashboard = ({ onPlanteleSelect }) => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -222,6 +223,19 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                         return context.parsed.x + '%';
                       }
                     }
+                  },
+                  datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    formatter: function (value) {
+                      return value + '%';
+                    },
+                    color: '#1f2937',
+                    font: {
+                      weight: 'bold',
+                      size: 11
+                    },
+                    padding: 4
                   }
                 },
                 scales: {
