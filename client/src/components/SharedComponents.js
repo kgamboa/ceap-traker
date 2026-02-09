@@ -52,7 +52,10 @@ export const FaseStatus = ({ fase }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
-    const date = new Date(dateString);
+    // Extraer año, mes, día directamente del string para evitar problemas de zona horaria
+    const dateOnly = dateString.split('T')[0]; // Obtener solo YYYY-MM-DD
+    const [year, month, day] = dateOnly.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
   };
 

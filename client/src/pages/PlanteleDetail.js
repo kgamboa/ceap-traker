@@ -4,6 +4,17 @@ import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
 import '../styles/PlanteleDetail.css';
 
+// Función helper para convertir fecha de servidor a formato YYYY-MM-DD local
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // Usar getFullYear, getMonth, getDate para obtener la fecha en la zona horaria local
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const PlanteleDetail = ({ plantel, onBack }) => {
   const [ceaps, setCeaps] = useState([]);
   const [selectedCeap, setSelectedCeap] = useState(null);
@@ -58,6 +69,8 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     setEditingFaseId(faseId);
     setEditData({
       ...currentData,
+      fecha_estimada: formatDateForInput(currentData.fecha_estimada),
+      fecha_conclusión: formatDateForInput(currentData.fecha_conclusión),
       ceapId: selectedCeap.id
     });
   };
