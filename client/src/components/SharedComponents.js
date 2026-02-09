@@ -10,8 +10,8 @@ export const ProgressBar = ({ percentage, size = 'md' }) => {
 
   return (
     <div className={`progress-bar-container ${sizeClasses[size]}`}>
-      <div 
-        className="progress-bar-fill" 
+      <div
+        className="progress-bar-fill"
         style={{ width: `${percentage}%` }}
       />
       <span className="progress-bar-text">{percentage}%</span>
@@ -33,7 +33,7 @@ export const StatCard = ({ title, value, icon, color = 'blue' }) => {
 
 export const FaseStatus = ({ fase }) => {
   const getStatusColor = (estado) => {
-    switch(estado) {
+    switch (estado) {
       case 'completado': return '#10b981';
       case 'en_progreso': return '#f59e0b';
       case 'no_iniciado': return '#ef4444';
@@ -42,7 +42,7 @@ export const FaseStatus = ({ fase }) => {
   };
 
   const getStatusLabel = (estado) => {
-    switch(estado) {
+    switch (estado) {
       case 'completado': return 'Completado';
       case 'en_progreso': return 'En Progreso';
       case 'no_iniciado': return 'No Iniciado';
@@ -60,7 +60,7 @@ export const FaseStatus = ({ fase }) => {
     <div className="fase-status">
       <div className="fase-status-header">
         <h4>{fase.fase_nombre}</h4>
-        <span 
+        <span
           className="status-badge"
           style={{ backgroundColor: getStatusColor(fase.estado) }}
         >
@@ -107,9 +107,16 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
           <div className="plantel-progress">
             <small>Avance: {ceap.porcentaje_avance}%</small>
             <div style={{ backgroundColor: '#e5e7eb', borderRadius: '4px', height: '8px', marginTop: '4px' }}>
-              <div 
+              <div
                 style={{
-                  backgroundColor: ceap.porcentaje_avance === 100 ? '#10b981' : '#3b82f6',
+                  backgroundColor: (() => {
+                    const avance = ceap.porcentaje_avance;
+                    if (avance === 100) return '#10b981';
+                    if (avance >= 75) return '#3b82f6';
+                    if (avance >= 50) return '#f59e0b';
+                    if (avance >= 25) return '#ef6444';
+                    return '#9ca3af';
+                  })(),
                   width: `${ceap.porcentaje_avance}%`,
                   height: '100%',
                   borderRadius: '4px',
