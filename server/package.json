@@ -5,8 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "migrate": "node migrations/migrate.js"
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",

@@ -8,7 +8,6 @@
     "server": "cd server && npm start",
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
-    "dev": "cd server && npm run dev",
-    "migrate": "cd server && npm run migrate"
+    "dev": "cd server && npm run dev"
   }
 }

@@ -22,22 +22,22 @@ async function waitForDatabase(maxRetries = 60) {
   console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
   console.log('DB_HOST:', process.env.DB_HOST);
   console.log('DB_PORT:', process.env.DB_PORT);
-  
+
   const config = process.env.DATABASE_URL
     ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
-      }
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    }
     : {
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-        host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || 'ceap_tracker',
-      };
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'ceap_tracker',
+    };
 
   console.log('Intentando conectarse a:', process.env.DATABASE_URL ? 'DATABASE_URL' : `${config.host}:${config.port}`);
-  
+
   const pool = new Pool(config);
 
   for (let i = 0; i < maxRetries; i++) {
@@ -51,31 +51,6 @@ async function waitForDatabase(maxRetries = 60) {
     }
   }
   throw new Error('No se pudo conectar a PostgreSQL después de varios intentos');
-}
-
-// Función para ejecutar migraciones
-async function runMigrationsOnStartup(pool) {
-  try {
-    console.log('Ejecutando migraciones...');
-    
-    // Ejecutar schema
-    const schemaPath = path.join(__dirname, '../migrations/001_initial_schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    await pool.query(schemaSql);
-    console.log('✓ Schema migrado exitosamente');
-    
-    // Ejecutar seed data
-    const seedPath = path.join(__dirname, '../migrations/002_seed_data.sql');
-    const seedSql = fs.readFileSync(seedPath, 'utf8');
-    await pool.query(seedSql);
-    console.log('✓ Seed data insertado exitosamente');
-  } catch (error) {
-    if (error.message.includes('already exists')) {
-      console.log('✓ Migraciones ya ejecutadas anteriormente');
-    } else {
-      console.error('Error en migraciones:', error.message);
-    }
-  }
 }
 
 // Servir archivos estáticos del cliente (en producción)
@@ -104,12 +79,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Esperar a que PostgreSQL esté disponible, luego ejecutar migraciones
+// Esperar a que PostgreSQL esté disponible
 waitForDatabase()
   .then(async (pool) => {
-    await runMigrationsOnStartup(pool);
     await pool.end();
-    
+
     app.listen(PORT, () => {
       console.log(`Servidor CEAP Tracker ejecutándose en puerto ${PORT}`);
     });
