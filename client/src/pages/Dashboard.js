@@ -154,12 +154,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
         <div className="dashboard-actions">
           <button
             className="btn btn-primary"
-            onClick={() => setShowNewPlantelModal(true)}
-          >
-            <Plus size={18} /> Agregar Plantel
-          </button>
-          <button
-            className="btn btn-primary"
             onClick={handleExportExcel}
             disabled={exporting}
           >
