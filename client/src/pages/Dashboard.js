@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -119,7 +119,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
   const [exporting, setExporting] = useState(false);
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
-  const [showChart, setShowChart] = useState(false);
+  // Eliminado showChart/setShowChart
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
