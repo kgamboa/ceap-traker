@@ -134,6 +134,9 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
       <div className="plantel-card-header">
         <h3>{plantel.nombre}</h3>
         <span className="plantel-code">{plantel.codigo}</span>
+        {plantel.cct && (
+          <span className="plantel-cct" style={{ marginLeft: 8, background: '#3b82f6', color: '#fff', borderRadius: 4, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{plantel.cct}</span>
+        )}
       </div>
       <div className="plantel-card-body">
         <p><strong>Ciclo:</strong> {getCEaPCycle()}</p>

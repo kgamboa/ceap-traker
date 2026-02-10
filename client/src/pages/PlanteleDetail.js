@@ -235,6 +235,42 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
           {editingPlantel ? (
             <div className="plantel-editor">
               <div className="form-group">
+                <label>CCT:</label>
+                <input
+                  type="text"
+                  value={plantelData.cct || ''}
+                  onChange={(e) => setPlantelData({ ...plantelData, cct: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>RFC:</label>
+                <input
+                  type="text"
+                  value={plantelData.rfc || ''}
+                  onChange={(e) => setPlantelData({ ...plantelData, rfc: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>CAED:</label>
+                <input
+                  type="checkbox"
+                  checked={!!plantelData.caed}
+                  onChange={(e) => setPlantelData({ ...plantelData, caed: e.target.checked })}
+                />
+                <span style={{ marginLeft: 8 }}>¿Es CAED?</span>
+              </div>
+
+              <div className="form-group">
+                <label>Razón Social:</label>
+                <input
+                  type="text"
+                  value={plantelData.razon_social || ''}
+                  onChange={(e) => setPlantelData({ ...plantelData, razon_social: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
                 <label>Nombre del Plantel:</label>
                 <input
                   type="text"
@@ -306,6 +342,10 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
             </div>
           ) : (
             <>
+              <p><strong>CCT:</strong> {plantelData.cct}</p>
+              <p><strong>RFC:</strong> {plantelData.rfc}</p>
+              <p><strong>CAED:</strong> {plantelData.caed ? 'Sí' : 'No'}</p>
+              <p><strong>Razón Social:</strong> {plantelData.razon_social}</p>
               <p><strong>Director:</strong> {plantelData.director_nombre}</p>
               <p><strong>Email:</strong> {plantelData.director_email}</p>
               <p><strong>Teléfono:</strong> {plantelData.telefono}</p>
