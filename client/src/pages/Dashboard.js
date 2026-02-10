@@ -363,6 +363,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   if (error) {
     return <div className="error-message"><AlertCircle /> {error}</div>;
+        const [filterText, setFilterText] = useState('');
   }
 
   const stats = dashboardData?.estadisticas || {};
@@ -539,6 +540,15 @@ export const Dashboard = ({ onPlanteleSelect }) => {
               <button
                 className="btn btn-success"
                 onClick={handleCreatePlantel}
+              <div style={{ marginBottom: '1rem', maxWidth: 400 }}>
+                <input
+                  type="text"
+                  value={filterText}
+                  onChange={e => setFilterText(e.target.value)}
+                  placeholder="Filtrar por código o nombre..."
+                  style={{ width: '100%', padding: '0.5rem', fontSize: '1rem', borderRadius: '0.375rem', border: '1px solid #e5e7eb' }}
+                />
+              </div>
                 disabled={savingPlantel}
               >
                 <Plus size={18} /> Crear Plantel
