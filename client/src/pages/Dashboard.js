@@ -59,6 +59,13 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
             backgroundColor: barColors,
             borderRadius: 6,
             maxBarThickness: 32,
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              color: '#222',
+              font: { weight: 'bold' },
+              formatter: (value) => value > 0 ? value : '',
+            }
           },
           {
             label: 'Media Global',
@@ -70,6 +77,14 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
             fill: false,
             tension: 0,
             order: 2,
+            datalabels: {
+              display: (ctx) => ctx.dataIndex === 0,
+              align: 'start',
+              anchor: 'start',
+              color: '#f59e0b',
+              font: { weight: 'bold' },
+              formatter: (value) => value,
+            }
           }
         ]
       },
@@ -83,6 +98,9 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
             callbacks: {
               label: (context) => context.parsed.x + '%'
             }
+          },
+          datalabels: {
+            clip: true
           }
         },
         scales: {
@@ -156,6 +174,13 @@ const AvanceLineChart = ({ planteles, ceapMap, media }) => {
             pointRadius: 5,
             fill: true,
             tension: 0.3,
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              color: '#222',
+              font: { weight: 'bold' },
+              formatter: (value) => value > 0 ? value : '',
+            }
           },
           {
             label: 'Media Global',
@@ -165,6 +190,14 @@ const AvanceLineChart = ({ planteles, ceapMap, media }) => {
             pointRadius: 0,
             fill: false,
             tension: 0,
+            datalabels: {
+              display: (ctx) => ctx.dataIndex === 0,
+              align: 'start',
+              anchor: 'start',
+              color: '#f59e0b',
+              font: { weight: 'bold' },
+              formatter: (value) => value,
+            }
           }
         ]
       },
@@ -177,6 +210,9 @@ const AvanceLineChart = ({ planteles, ceapMap, media }) => {
             callbacks: {
               label: (context) => context.parsed.y + '%'
             }
+          },
+          datalabels: {
+            clip: true
           }
         },
         scales: {
