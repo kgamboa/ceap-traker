@@ -400,26 +400,30 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       </div>
 
       {/* Top 5 mejores y peores planteles */}
-      <div style={{ display: 'flex', gap: '2rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#10b981', fontSize: '1rem' }}>Top 5 Mejores</h3>
-          {top5.map(p => (
-            <div key={p.id} style={{ background: '#f0fdf4', borderRadius: 8, padding: '0.5rem 1rem', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 15 }}>
-              <span style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</span>
-              <span style={{ color: '#10b981', fontWeight: 700 }}>{p.avance}%</span>
+        <div style={{ display: 'flex', gap: '2rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#10b981', fontSize: '1rem' }}>Top 5 Mejores</h3>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {top5.map(p => (
+                <div key={p.id} className="stat-card stat-card-green" style={{ background: '#f0fdf4', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
+                  <div style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</div>
+                  <div style={{ color: '#10b981', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '1rem' }}>Top 5 Menores</h3>
-          {bottom5.map(p => (
-            <div key={p.id} style={{ background: '#fef2f2', borderRadius: 8, padding: '0.5rem 1rem', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 15 }}>
-              <span style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</span>
-              <span style={{ color: '#ef4444', fontWeight: 700 }}>{p.avance}%</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '1rem' }}>Top 5 Menores</h3>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {bottom5.map(p => (
+                <div key={p.id} className="stat-card stat-card-danger" style={{ background: '#fef2f2', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
+                  <div style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</div>
+                  <div style={{ color: '#ef4444', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
 
       <div className="progress-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -447,7 +451,8 @@ export const Dashboard = ({ onPlanteleSelect }) => {
             <PlanteleCard
               key={plantel.id}
               plantel={plantel}
-              ceap={ceapMap[plantel.id]}
+              },
+              display: true
               onClick={() => onPlanteleSelect(plantel)}
             />
           ))}
