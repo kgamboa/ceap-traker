@@ -6,8 +6,8 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
-  BarController,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend
@@ -15,34 +15,18 @@ import {
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend, ChartDataLabels);
 
-// Componente de gráfica separado para manejar el ciclo de vida de Chart.js correctamente
-const AvanceChart = ({ planteles, ceapMap }) => {
+// Nueva gráfica: Avance por Plantel con línea de media
+const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
-
-  const buildChartData = useCallback(() => {
-    const labels = planteles.map(p => p.nombre);
-    const data = planteles.map(p => {
-      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-      return avance >= 99.5 ? 100 : avance;
-    });
-    const bgColors = planteles.map(p => {
-      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-      if (avance >= 100) return '#10b981';
-      if (avance >= 75) return '#3b82f6';
-      if (avance >= 50) return '#f59e0b';
-      if (avance >= 25) return '#ef6444';
-      return '#9ca3af';
-    });
-    return { labels, data, bgColors };
-  }, [planteles, ceapMap]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const { labels, data, bgColors } = buildChartData();
+    const labels = planteles.map(p => p.nombre);
+    const data = planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0);
 
     // Destroy previous chart instance if it exists
     if (chartRef.current) {
@@ -53,64 +37,45 @@ const AvanceChart = ({ planteles, ceapMap }) => {
     const ctx = canvasRef.current.getContext('2d');
 
     chartRef.current = new ChartJS(ctx, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels,
-        datasets: [{
-          label: 'Porcentaje de Avance (%)',
-          data,
-          backgroundColor: bgColors,
-          borderRadius: 4,
-          barThickness: 'flex',
-          maxBarThickness: 40,
-        }]
+        datasets: [
+          {
+            label: 'Avance por Plantel',
+            data,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.2)',
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#fff',
+            pointRadius: 5,
+            fill: true,
+            tension: 0.3,
+          },
+          {
+            label: 'Media Global',
+            data: Array(labels.length).fill(media),
+            borderColor: '#f59e0b',
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+          }
+        ]
       },
-      plugins: [ChartDataLabels, {
-        id: 'highlightZero',
-        afterDraw: (chart) => {
-          const ctx2 = chart.ctx;
-          const yAxis = chart.scales.y;
-          chart.data.datasets[0].data.forEach((value, index) => {
-            if (value === 0) {
-              const y = yAxis.getPixelForTick(index);
-              const tickLabel = yAxis._labelItems?.[index];
-              if (tickLabel) {
-                ctx2.save();
-                ctx2.fillStyle = '#fef08a';
-                const padding = 4;
-                const textWidth = ctx2.measureText(tickLabel.label).width;
-                const rectX = tickLabel.translation[0] - textWidth - padding;
-                const rectY = y - tickLabel.font.size / 2 - padding;
-                ctx2.fillRect(rectX, rectY, textWidth + padding * 2, tickLabel.font.size + padding * 2);
-                ctx2.restore();
-              }
-            }
-          });
-        }
-      }],
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: { display: true, position: 'top' },
           tooltip: {
             callbacks: {
-              label: (context) => context.parsed.x + '%'
+              label: (context) => context.parsed.y + '%'
             }
-          },
-          datalabels: {
-            anchor: 'end',
-            align: 'end',
-            clip: false,
-            offset: 4,
-            formatter: (value) => value + '%',
-            color: '#1f2937',
-            font: { weight: 'bold', size: 11 }
           }
         },
         scales: {
-          x: {
+          y: {
             min: 0,
             max: 100,
             ticks: {
@@ -119,13 +84,10 @@ const AvanceChart = ({ planteles, ceapMap }) => {
             },
             grid: { display: true }
           },
-          y: {
+          x: {
             ticks: { autoSkip: false },
             grid: { display: false }
           }
-        },
-        layout: {
-          padding: { right: 50, top: 10, bottom: 10 }
         }
       }
     });
@@ -137,9 +99,9 @@ const AvanceChart = ({ planteles, ceapMap }) => {
         chartRef.current = null;
       }
     };
-  }, [buildChartData]);
+  }, [planteles, ceapMap, media]);
 
-  const chartHeight = Math.max(500, planteles.length * 32);
+  const chartHeight = Math.max(400, planteles.length * 18);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: chartHeight + 'px', marginTop: '1rem' }}>
@@ -291,34 +253,17 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       <div className="progress-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              className="btn btn-primary"
-              onClick={handleExportExcel}
-              disabled={exporting}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Download size={18} /> Exportar
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowChart(!showChart)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              {showChart ? (
-                <>
-                  <ChevronUp size={18} /> Ocultar Gráfica
-                </>
-              ) : (
-                <>
-                  <ChevronDown size={18} /> Mostrar Gráfica
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            className="btn btn-primary"
+            onClick={handleExportExcel}
+            disabled={exporting}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Download size={18} /> Exportar
+          </button>
         </div>
-        {showChart && planteles.length > 0 && (
-          <AvanceChart planteles={planteles} ceapMap={ceapMap} />
+        {planteles.length > 0 && (
+          <AvanceLineChart planteles={planteles} ceapMap={ceapMap} media={stats.porcentajeGlobal || 0} />
         )}
       </div>
 
