@@ -34,15 +34,6 @@ function App() {
             <p className="app-subtitle">Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
             <p className="app-version" style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', opacity: 0.8 }}>v. 1.2.1</p>
           </div>
-          <div className="app-header-right">
-            <div className="role-selector">
-              <label>Rol:</label>
-              <select value={role} onChange={(e) => handleRoleChange(e.target.value)}>
-                <option value="user">Usuario</option>
-                <option value="admin">Administrador</option>
-              </select>
-            </div>
-          </div>
         </div>
       </header>
 

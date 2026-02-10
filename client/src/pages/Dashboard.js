@@ -9,6 +9,8 @@ import {
   LineElement,
   PointElement,
   LineController,
+  BarElement,
+  BarController,
   Title,
   Tooltip,
   Legend
@@ -16,10 +18,101 @@ import {
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
 
 // Nueva gráfica: Avance por Plantel con línea de media
 const AvanceLineChart = ({ planteles, ceapMap, media }) => {
+  // Gráfica de barras horizontales para móvil
+  const AvanceBarChart = ({ planteles, ceapMap, media }) => {
+    const canvasRef = useRef(null);
+    const chartRef = useRef(null);
+
+    useEffect(() => {
+      if (!canvasRef.current) return;
+
+      const labels = planteles.map(p => p.codigo || p.nombre);
+      const data = planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0);
+
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+
+      const ctx = canvasRef.current.getContext('2d');
+
+      chartRef.current = new ChartJS(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Avance por Plantel',
+              data,
+              backgroundColor: '#3b82f6',
+              borderRadius: 4,
+              barThickness: 'flex',
+              maxBarThickness: 40,
+            },
+            {
+              label: 'Media Global',
+              data: Array(labels.length).fill(media),
+              backgroundColor: 'rgba(245,158,11,0.2)',
+              borderColor: '#f59e0b',
+              type: 'line',
+              order: 2,
+              pointRadius: 0,
+              fill: false,
+              borderDash: [6, 4],
+              tension: 0,
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: (context) => context.parsed.x + '%'
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 100,
+              ticks: {
+                stepSize: 10,
+                callback: (value) => value + '%'
+              },
+              grid: { display: true }
+            },
+            y: {
+              ticks: { autoSkip: false },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+
+      return () => {
+        if (chartRef.current) {
+          chartRef.current.destroy();
+          chartRef.current = null;
+        }
+      };
+    }, [planteles, ceapMap, media]);
+
+    const chartHeight = Math.max(400, planteles.length * 18);
+
+    return (
+      <div style={{ position: 'relative', width: '100%', height: chartHeight + 'px', marginTop: '1rem' }}>
+        <canvas ref={canvasRef} />
+      </div>
+    );
+  };
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
@@ -295,7 +388,9 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           </button>
         </div>
         {planteles.length > 0 && (
-          <AvanceLineChart planteles={planteles} ceapMap={ceapMap} media={stats.porcentajeGlobal || 0} />
+          (window.innerWidth < 700
+            ? <AvanceBarChart planteles={planteles} ceapMap={ceapMap} media={stats.porcentajeGlobal || 0} />
+            : <AvanceLineChart planteles={planteles} ceapMap={ceapMap} media={stats.porcentajeGlobal || 0} />)
         )}
       </div>
 
