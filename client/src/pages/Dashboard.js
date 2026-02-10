@@ -23,7 +23,7 @@ ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineCont
 // Nueva gráfica: Avance por Plantel con línea de media
 const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   // Gráfica de barras horizontales para móvil
-  const AvanceBarChart = ({ planteles, ceapMap, media }) => {
+  // ...AvanceBarChart definition...
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
 

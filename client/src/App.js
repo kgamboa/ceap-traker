@@ -1,11 +1,11 @@
+
 import React, { useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import PlanteleDetail from './pages/PlanteleDetail';
-import { useRole } from './hooks/useRole';
 import './App.css';
 
+
 function App() {
-  const { role, setRole } = useRole();
   const [view, setView] = useState('dashboard'); // 'dashboard' o 'detail'
   const [selectedPlantel, setSelectedPlantel] = useState(null);
 
@@ -17,12 +17,6 @@ function App() {
   const handleBack = () => {
     setView('dashboard');
     setSelectedPlantel(null);
-  };
-
-  const handleRoleChange = (newRole) => {
-    setRole(newRole);
-    // Recargar la página para que React actualice el hook
-    window.location.reload();
   };
 
   return (
