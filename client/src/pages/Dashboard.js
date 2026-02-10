@@ -50,7 +50,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
   const [showChart, setShowChart] = useState(false);
-  const [chartKey, setChartKey] = useState(0);
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -160,22 +159,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="dashboard-title">
-          <h1>CEAP Tracker</h1>
-          <p>Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
-          <p style={{ fontSize: '0.85em', color: '#6b7280', margin: '0.25rem 0 0 0' }}>v. 1.2.1</p>
-        </div>
-        <div className="dashboard-actions">
-          <button
-            className="btn btn-primary"
-            onClick={handleExportExcel}
-            disabled={exporting}
-          >
-            <Download size={18} /> Exportar
-          </button>
-        </div>
-      </div>
 
       <div className="stats-grid">
         <StatCard
@@ -201,42 +184,43 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       <div className="progress-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              setShowChart(!showChart);
-              // Incrementar chartKey para forzar re-render del gráfico
-              if (!showChart) {
-                setChartKey(prev => prev + 1);
-              }
-            }}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            {showChart ? (
-              <>
-                <ChevronUp size={18} /> Ocultar Gráfica
-              </>
-            ) : (
-              <>
-                <ChevronDown size={18} /> Mostrar Gráfica
-              </>
-            )}
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              className="btn btn-primary"
+              onClick={handleExportExcel}
+              disabled={exporting}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Download size={18} /> Exportar
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowChart(!showChart)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              {showChart ? (
+                <>
+                  <ChevronUp size={18} /> Ocultar Gráfica
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={18} /> Mostrar Gráfica
+                </>
+              )}
+            </button>
+          </div>
         </div>
         {showChart && planteles.length > 0 && (
-          <div className="chart-container" key={`container-${chartKey}`}>
+          <div className="chart-container" style={{ width: '100%', height: Math.max(400, planteles.length * 30) + 'px' }}>
             <Bar
-              key={`chart-${chartKey}`}
               data={{
                 labels: planteles.map(p => p.nombre),
                 datasets: [
                   {
                     label: 'Porcentaje de Avance (%)',
                     data: planteles.map(p => {
-                      let avance = ceapMap[p.id]?.porcentaje_avance || 0;
-                      // Forzar a 100 si está muy cerca de 100 por redondeo
-                      if (avance >= 99.5) return 100;
-                      return avance;
+                      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
+                      return avance >= 99.5 ? 100 : avance;
                     }),
                     backgroundColor: planteles.map(p => {
                       const avance = ceapMap[p.id]?.porcentaje_avance || 0;
@@ -247,9 +231,8 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                       return '#9ca3af';
                     }),
                     borderRadius: 4,
-                    borderSkipped: false,
-                    barPercentage: 0.9,
-                    categoryPercentage: 0.8,
+                    barThickness: 'flex',
+                    maxBarThickness: 40,
                   }
                 ]
               }}
@@ -265,60 +248,51 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                   },
                   tooltip: {
                     callbacks: {
-                      label: function (context) {
-                        return context.parsed.x + '%';
-                      }
+                      label: (context) => context.parsed.x + '%'
                     }
                   },
                   datalabels: {
                     anchor: 'end',
-                    align: 'right',
-                    formatter: function (value) {
-                      return value + '%';
-                    },
+                    align: 'end',
+                    offset: 4,
+                    formatter: (value) => value + '%',
                     color: '#1f2937',
                     font: {
                       weight: 'bold',
                       size: 11
-                    },
-                    padding: 4
+                    }
                   }
                 },
                 scales: {
                   x: {
-                    beginAtZero: true,
                     min: 0,
                     max: 100,
-                    afterFit: function(scaleInstance) {
-                      scaleInstance.paddingRight = 0;
-                    },
                     ticks: {
                       stepSize: 10,
-                      callback: function (value) {
-                        return value + '%';
-                      }
+                      callback: (value) => value + '%'
                     },
                     grid: {
-                      drawBorder: true,
-                      lineWidth: 1
+                      display: true,
+                      drawBorder: true
                     }
                   },
                   y: {
                     ticks: {
                       autoSkip: false
+                    },
+                    grid: {
+                      display: false
                     }
                   }
                 },
                 layout: {
                   padding: {
-                    right: 40
+                    right: 45,
+                    top: 10,
+                    bottom: 10
                   }
-                },
-                animation: {
-                  duration: 750
                 }
               }}
-              height={Math.max(400, planteles.length * 30)}
             />
           </div>
         )}

@@ -32,6 +32,7 @@ function App() {
           <div className="app-header-left">
             <h1 className="app-title">CEAP Tracker</h1>
             <p className="app-subtitle">Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
+            <p className="app-version" style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', opacity: 0.8 }}>v. 1.2.1</p>
           </div>
           <div className="app-header-right">
             <div className="role-selector">
