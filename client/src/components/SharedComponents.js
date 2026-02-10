@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/Dashboard.css';
+import { AlertCircle } from 'lucide-react';
 
 export const ProgressBar = ({ percentage, size = 'md' }) => {
   const sizeClasses = {
@@ -125,6 +126,9 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
 
   const faseInfo = getFaseInfo();
 
+  // Ciclo alerta: mostrar si ciclo es 2024-2026 y año actual es 2026
+  const showCicloAlerta = ceap && ceap.ciclo_inicio === 2024 && ceap.ciclo_fin === 2026 && new Date().getFullYear() === 2026;
+
   return (
     <div className="plantel-card" onClick={onClick}>
       <div className="plantel-card-header">
@@ -133,6 +137,12 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
       </div>
       <div className="plantel-card-body">
         <p><strong>Ciclo:</strong> {getCEaPCycle()}</p>
+        {showCicloAlerta && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#f59e0b', marginBottom: '4px', marginTop: '-4px' }}>
+            <AlertCircle size={14} style={{ marginRight: '2px' }} />
+            <span>En agosto se debe cambiar de CEAP</span>
+          </div>
+        )}
         <p><strong>Director:</strong> {plantel.director_nombre}</p>
         {ceap && (
           <div className="plantel-progress">
