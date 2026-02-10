@@ -8,6 +8,7 @@ import {
   LinearScale,
   LineElement,
   PointElement,
+  LineController,
   Title,
   Tooltip,
   Legend
@@ -15,7 +16,7 @@ import {
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, Title, Tooltip, Legend, ChartDataLabels);
 
 // Nueva gráfica: Avance por Plantel con línea de media
 const AvanceLineChart = ({ planteles, ceapMap, media }) => {
