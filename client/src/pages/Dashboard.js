@@ -7,6 +7,7 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  BarController,
   Title,
   Tooltip,
   Legend
@@ -14,7 +15,7 @@ import {
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
+ChartJS.register(CategoryScale, LinearScale, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
 
 // Componente de gráfica separado para manejar el ciclo de vida de Chart.js correctamente
 const AvanceChart = ({ planteles, ceapMap }) => {
