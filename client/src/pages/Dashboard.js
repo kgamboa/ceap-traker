@@ -1,43 +1,150 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
 import { Download, BarChart3, AlertCircle, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
-// Plugin para marcar con fondo amarillo los planteles sin captura
-const highlightZeroPlugin = {
-  id: 'highlightZero',
-  afterDraw: (chart) => {
-    const ctx = chart.ctx;
-    const yAxis = chart.scales.y;
+// Componente de gráfica separado para manejar el ciclo de vida de Chart.js correctamente
+const AvanceChart = ({ planteles, ceapMap }) => {
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
 
-    chart.data.datasets[0].data.forEach((value, index) => {
-      if (value === 0) {
-        const y = yAxis.getPixelForTick(index);
-        const tickLabel = yAxis._labelItems[index];
+  const buildChartData = useCallback(() => {
+    const labels = planteles.map(p => p.nombre);
+    const data = planteles.map(p => {
+      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
+      return avance >= 99.5 ? 100 : avance;
+    });
+    const bgColors = planteles.map(p => {
+      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
+      if (avance >= 100) return '#10b981';
+      if (avance >= 75) return '#3b82f6';
+      if (avance >= 50) return '#f59e0b';
+      if (avance >= 25) return '#ef6444';
+      return '#9ca3af';
+    });
+    return { labels, data, bgColors };
+  }, [planteles, ceapMap]);
 
-        if (tickLabel) {
-          // Draw yellow background
-          ctx.save();
-          ctx.fillStyle = '#fef08a'; // yellow-200
-          const padding = 4;
-          const textWidth = ctx.measureText(tickLabel.label).width;
-          const rectX = tickLabel.translation[0] - textWidth - padding;
-          const rectY = y - tickLabel.font.size / 2 - padding;
-          const rectWidth = textWidth + padding * 2;
-          const rectHeight = tickLabel.font.size + padding * 2;
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-          ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-          ctx.restore();
+    const { labels, data, bgColors } = buildChartData();
+
+    // Destroy previous chart instance if it exists
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
+    }
+
+    const ctx = canvasRef.current.getContext('2d');
+
+    chartRef.current = new ChartJS(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Porcentaje de Avance (%)',
+          data,
+          backgroundColor: bgColors,
+          borderRadius: 4,
+          barThickness: 'flex',
+          maxBarThickness: 40,
+        }]
+      },
+      plugins: [ChartDataLabels, {
+        id: 'highlightZero',
+        afterDraw: (chart) => {
+          const ctx2 = chart.ctx;
+          const yAxis = chart.scales.y;
+          chart.data.datasets[0].data.forEach((value, index) => {
+            if (value === 0) {
+              const y = yAxis.getPixelForTick(index);
+              const tickLabel = yAxis._labelItems?.[index];
+              if (tickLabel) {
+                ctx2.save();
+                ctx2.fillStyle = '#fef08a';
+                const padding = 4;
+                const textWidth = ctx2.measureText(tickLabel.label).width;
+                const rectX = tickLabel.translation[0] - textWidth - padding;
+                const rectY = y - tickLabel.font.size / 2 - padding;
+                ctx2.fillRect(rectX, rectY, textWidth + padding * 2, tickLabel.font.size + padding * 2);
+                ctx2.restore();
+              }
+            }
+          });
+        }
+      }],
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: (context) => context.parsed.x + '%'
+            }
+          },
+          datalabels: {
+            anchor: 'end',
+            align: 'end',
+            clip: false,
+            offset: 4,
+            formatter: (value) => value + '%',
+            color: '#1f2937',
+            font: { weight: 'bold', size: 11 }
+          }
+        },
+        scales: {
+          x: {
+            min: 0,
+            max: 100,
+            ticks: {
+              stepSize: 10,
+              callback: (value) => value + '%'
+            },
+            grid: { display: true }
+          },
+          y: {
+            ticks: { autoSkip: false },
+            grid: { display: false }
+          }
+        },
+        layout: {
+          padding: { right: 50, top: 10, bottom: 10 }
         }
       }
     });
-  }
+
+    // Cleanup on unmount
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [buildChartData]);
+
+  const chartHeight = Math.max(500, planteles.length * 32);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: chartHeight + 'px', marginTop: '1rem' }}>
+      <canvas ref={canvasRef} />
+    </div>
+  );
 };
 
 export const Dashboard = ({ onPlanteleSelect }) => {
@@ -82,7 +189,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           map[ceap.plantel_id] = ceap;
         }
       });
-      console.log('CEAPs con fases:', dashRes.data.ceaps.map(c => ({ id: c.id, plantel_id: c.plantel_id, fases: c.fases })));
       setCeapMap(map);
     } catch (err) {
       console.error(err);
@@ -211,90 +317,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           </div>
         </div>
         {showChart && planteles.length > 0 && (
-          <div className="chart-container" style={{ width: '100%', height: Math.max(400, planteles.length * 30) + 'px' }}>
-            <Bar
-              data={{
-                labels: planteles.map(p => p.nombre),
-                datasets: [
-                  {
-                    label: 'Porcentaje de Avance (%)',
-                    data: planteles.map(p => {
-                      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-                      return avance >= 99.5 ? 100 : avance;
-                    }),
-                    backgroundColor: planteles.map(p => {
-                      const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-                      if (avance === 100) return '#10b981';
-                      if (avance >= 75) return '#3b82f6';
-                      if (avance >= 50) return '#f59e0b';
-                      if (avance >= 25) return '#ef6444';
-                      return '#9ca3af';
-                    }),
-                    borderRadius: 4,
-                    barThickness: 'flex',
-                    maxBarThickness: 40,
-                  }
-                ]
-              }}
-              plugins={[highlightZeroPlugin]}
-              options={{
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    display: true,
-                    position: 'top',
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: (context) => context.parsed.x + '%'
-                    }
-                  },
-                  datalabels: {
-                    anchor: 'end',
-                    align: 'end',
-                    offset: 4,
-                    formatter: (value) => value + '%',
-                    color: '#1f2937',
-                    font: {
-                      weight: 'bold',
-                      size: 11
-                    }
-                  }
-                },
-                scales: {
-                  x: {
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                      stepSize: 10,
-                      callback: (value) => value + '%'
-                    },
-                    grid: {
-                      display: true,
-                      drawBorder: true
-                    }
-                  },
-                  y: {
-                    ticks: {
-                      autoSkip: false
-                    },
-                    grid: {
-                      display: false
-                    }
-                  }
-                },
-                layout: {
-                  padding: {
-                    right: 45,
-                    top: 10,
-                    bottom: 10
-                  }
-                }
-              }}
-            />
-          </div>
+          <AvanceChart planteles={planteles} ceapMap={ceapMap} />
         )}
       </div>
 
