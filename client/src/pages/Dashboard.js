@@ -64,18 +64,19 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
         ]
       },
       options: {
+        indexAxis: 'y', // HORIZONTAL BARS
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: { display: true, position: 'top' },
           tooltip: {
             callbacks: {
-              label: (context) => context.parsed.y + '%'
+              label: (context) => context.parsed.x + '%'
             }
           }
         },
         scales: {
-          y: {
+          x: {
             min: 0,
             max: 100,
             ticks: {
@@ -84,7 +85,7 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
             },
             grid: { display: true }
           },
-          x: {
+          y: {
             ticks: { autoSkip: false },
             grid: { display: false }
           }
