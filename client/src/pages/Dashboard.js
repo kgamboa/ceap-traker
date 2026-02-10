@@ -17,6 +17,7 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import '../styles/Dashboard.css';
+import { useRole } from '../hooks/useRole';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
 
@@ -140,7 +141,6 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
 };
 
 
-
 // Nueva gráfica: Avance por Plantel con línea de media
 const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   const canvasRef = useRef(null);
@@ -260,7 +260,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
   const [exporting, setExporting] = useState(false);
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
-  // Eliminado showChart/setShowChart
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -270,6 +269,14 @@ export const Dashboard = ({ onPlanteleSelect }) => {
     director_email: '',
     telefono: ''
   });
+  const { isAdmin } = useRole();
+  const APP_VERSION = '1.0.0'; // Cambia aquí la versión
+  const [filterText, setFilterText] = useState('');
+
+  // Filtro flexible: ignora espacios, mayúsculas y acentos
+  const normalize = str => (str || '').toLowerCase().replace(/\s+/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filter = normalize(filterText);
+  const plantelesFiltrados = planteles.filter(p => [p.codigo, p.nombre, p.cct].some(val => normalize(val).includes(filter)));
 
   useEffect(() => {
     fetchDashboardData();
@@ -363,7 +370,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   if (error) {
     return <div className="error-message"><AlertCircle /> {error}</div>;
-        const [filterText, setFilterText] = useState('');
   }
 
   const stats = dashboardData?.estadisticas || {};
@@ -378,6 +384,16 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   return (
     <div className="dashboard">
+      <div style={{textAlign:'right',fontSize:'0.9rem',color:'#888',marginBottom:'0.5rem'}}>Versión: {APP_VERSION}</div>
+      <div style={{ marginBottom: '1rem', maxWidth: 400 }}>
+        <input
+          type="text"
+          value={filterText}
+          onChange={e => setFilterText(e.target.value)}
+          placeholder="Filtrar por código, nombre o CCT..."
+          style={{ width: '100%', padding: '0.5rem', fontSize: '1rem', borderRadius: '0.375rem', border: '1px solid #e5e7eb' }}
+        />
+      </div>
 
       <div className="stats-grid">
         <StatCard
@@ -401,30 +417,36 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       </div>
 
       {/* Top 5 mejores y peores planteles */}
-        <div style={{ display: 'flex', gap: '2rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#10b981', fontSize: '1rem' }}>Top 5 Mejores</h3>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {top5.map(p => (
-                <div key={p.id} className="stat-card stat-card-green" style={{ background: '#f0fdf4', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
-                  <div style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</div>
-                  <div style={{ color: '#10b981', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
+      <div style={{ display: 'flex', gap: '2rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#10b981', fontSize: '1rem' }}>Top 5 Mejores</h3>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {top5.map(p => (
+              <div key={p.id} className="stat-card stat-card-green" style={{ background: '#f0fdf4', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
+                <div style={{ fontWeight: 600 }}>
+                  {p.codigo || p.nombre}
+                  {p.cct && <span style={{ color: '#888', fontSize: 14, marginLeft: 8 }}>CCT: {p.cct}</span>}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 220 }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '1rem' }}>Top 5 Menores</h3>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {bottom5.map(p => (
-                <div key={p.id} className="stat-card stat-card-danger" style={{ background: '#fef2f2', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
-                  <div style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</div>
-                  <div style={{ color: '#ef4444', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
-                </div>
-              ))}
-            </div>
+                <div style={{ color: '#10b981', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
+              </div>
+            ))}
           </div>
         </div>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '1rem' }}>Top 5 Menores</h3>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {bottom5.map(p => (
+              <div key={p.id} className="stat-card stat-card-danger" style={{ background: '#fef2f2', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 16, boxShadow: 'var(--shadow)' }}>
+                <div style={{ fontWeight: 600 }}>
+                  {p.codigo || p.nombre}
+                  {p.cct && <span style={{ color: '#888', fontSize: 14, marginLeft: 8 }}>CCT: {p.cct}</span>}
+                </div>
+                <div style={{ color: '#ef4444', fontWeight: 700, fontSize: 18 }}>{p.avance}%</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="progress-section">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -448,20 +470,19 @@ export const Dashboard = ({ onPlanteleSelect }) => {
       <div className="planteles-section">
         <h2>Estatus por Plantel</h2>
         <div className="planteles-grid">
-          {planteles.map(plantel => (
+          {plantelesFiltrados.map(plantel => (
             <PlanteleCard
               key={plantel.id}
               plantel={plantel}
-              },
-              display: true
+              display={true}
               onClick={() => onPlanteleSelect(plantel)}
             />
           ))}
         </div>
       </div>
 
-      {/* Modal para crear nuevo Plantel */}
-      {showNewPlantelModal && (
+      {/* Modal para crear nuevo Plantel (solo admin) */}
+      {isAdmin && showNewPlantelModal && (
         <div className="modal-overlay" onClick={() => setShowNewPlantelModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -540,15 +561,6 @@ export const Dashboard = ({ onPlanteleSelect }) => {
               <button
                 className="btn btn-success"
                 onClick={handleCreatePlantel}
-              <div style={{ marginBottom: '1rem', maxWidth: 400 }}>
-                <input
-                  type="text"
-                  value={filterText}
-                  onChange={e => setFilterText(e.target.value)}
-                  placeholder="Filtrar por código o nombre..."
-                  style={{ width: '100%', padding: '0.5rem', fontSize: '1rem', borderRadius: '0.375rem', border: '1px solid #e5e7eb' }}
-                />
-              </div>
                 disabled={savingPlantel}
               >
                 <Plus size={18} /> Crear Plantel
@@ -563,6 +575,12 @@ export const Dashboard = ({ onPlanteleSelect }) => {
             </div>
           </div>
         </div>
+      )}
+      {/* Botón para agregar plantel solo admin */}
+      {isAdmin && (
+        <button className="btn btn-primary" onClick={() => setShowNewPlantelModal(true)}>
+          <Plus size={18} /> Agregar Plantel
+        </button>
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
 import '../styles/PlanteleDetail.css';
+import { useRole } from '../hooks/useRole';
 
 // Función helper para convertir fecha de servidor a formato YYYY-MM-DD local
 const formatDateForInput = (dateString) => {
@@ -30,6 +31,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     ciclo_inicio: new Date().getFullYear(),
     ciclo_fin: new Date().getFullYear() + 1
   });
+  const { isAdmin } = useRole();
 
   const fetchCeaps = useCallback(async () => {
     try {
@@ -352,19 +354,23 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               </select>
             </div>
             <div className="ceap-selector-buttons">
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowNewCeapModal(true)}
-              >
-                <Plus size={18} /> Nuevo CEAP
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleDeleteCeap}
-                disabled={saving}
-              >
-                <Trash2 size={18} /> Eliminar
-              </button>
+              {isAdmin && (
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowNewCeapModal(true)}
+                >
+                  <Plus size={18} /> Nuevo CEAP
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteCeap}
+                  disabled={saving}
+                >
+                  <Trash2 size={18} /> Eliminar
+                </button>
+              )}
             </div>
           </div>
 
