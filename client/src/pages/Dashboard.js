@@ -162,8 +162,9 @@ export const Dashboard = ({ onPlanteleSelect }) => {
     <div className="dashboard">
       <div className="dashboard-header">
         <div className="dashboard-title">
-          <h1>Dashboard CEAP - Guanajuato</h1>
-          <p>Seguimiento del Comité Escolar de Administración Participativa en DGETI</p>
+          <h1>CEAP Tracker</h1>
+          <p>Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
+          <p style={{ fontSize: '0.85em', color: '#6b7280', margin: '0.25rem 0 0 0' }}>v. 1.2.1</p>
         </div>
         <div className="dashboard-actions">
           <button
@@ -223,7 +224,7 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           </button>
         </div>
         {showChart && planteles.length > 0 && (
-          <div className="chart-container" key={chartKey}>
+          <div className="chart-container" key={`container-${chartKey}`}>
             <Bar
               key={`chart-${chartKey}`}
               data={{
@@ -247,6 +248,8 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                     }),
                     borderRadius: 4,
                     borderSkipped: false,
+                    barPercentage: 0.9,
+                    categoryPercentage: 0.8,
                   }
                 ]
               }}
@@ -286,12 +289,18 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                     beginAtZero: true,
                     min: 0,
                     max: 100,
-                    grace: 0,
+                    afterFit: function(scaleInstance) {
+                      scaleInstance.paddingRight = 0;
+                    },
                     ticks: {
                       stepSize: 10,
                       callback: function (value) {
                         return value + '%';
                       }
+                    },
+                    grid: {
+                      drawBorder: true,
+                      lineWidth: 1
                     }
                   },
                   y: {
@@ -302,8 +311,11 @@ export const Dashboard = ({ onPlanteleSelect }) => {
                 },
                 layout: {
                   padding: {
-                    right: 30
+                    right: 40
                   }
+                },
+                animation: {
+                  duration: 750
                 }
               }}
               height={Math.max(400, planteles.length * 30)}
