@@ -26,7 +26,8 @@ const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const labels = planteles.map(p => p.nombre);
+    // Usar el código (ej. CB065) como label
+    const labels = planteles.map(p => p.codigo || p.nombre);
     const data = planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0);
 
     // Destroy previous chart instance if it exists
@@ -227,6 +228,14 @@ export const Dashboard = ({ onPlanteleSelect }) => {
 
   const stats = dashboardData?.estadisticas || {};
 
+  // Calcular top 5 mejores y peores planteles por avance
+  const plantelesConAvance = planteles.map(p => ({
+    ...p,
+    avance: ceapMap[p.id]?.porcentaje_avance ?? 0
+  }));
+  const top5 = [...plantelesConAvance].sort((a, b) => b.avance - a.avance).slice(0, 5);
+  const bottom5 = [...plantelesConAvance].sort((a, b) => a.avance - b.avance).slice(0, 5);
+
   return (
     <div className="dashboard">
 
@@ -249,6 +258,28 @@ export const Dashboard = ({ onPlanteleSelect }) => {
           icon={<BarChart3 size={24} />}
           color="purple"
         />
+      </div>
+
+      {/* Top 5 mejores y peores planteles */}
+      <div style={{ display: 'flex', gap: '2rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#10b981', fontSize: '1rem' }}>Top 5 Mejores</h3>
+          {top5.map(p => (
+            <div key={p.id} style={{ background: '#f0fdf4', borderRadius: 8, padding: '0.5rem 1rem', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 15 }}>
+              <span style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</span>
+              <span style={{ color: '#10b981', fontWeight: 700 }}>{p.avance}%</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '1rem' }}>Top 5 Menores</h3>
+          {bottom5.map(p => (
+            <div key={p.id} style={{ background: '#fef2f2', borderRadius: 8, padding: '0.5rem 1rem', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 15 }}>
+              <span style={{ fontWeight: 600 }}>{p.codigo || p.nombre}</span>
+              <span style={{ color: '#ef4444', fontWeight: 700 }}>{p.avance}%</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="progress-section">
