@@ -38,6 +38,16 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
 
     const ctx = canvasRef.current.getContext('2d');
 
+    // Colores según avance (igual que PlanteleCard)
+    const getBarColor = (avance) => {
+      if (avance === 100) return '#10b981'; // verde
+      if (avance >= 75) return '#3b82f6'; // azul
+      if (avance >= 50) return '#f59e0b'; // naranja
+      if (avance >= 25) return '#ef6444'; // rojo claro
+      return '#9ca3af'; // gris
+    };
+    const barColors = planteles.map(p => getBarColor(ceapMap[p.id]?.porcentaje_avance ?? 0));
+
     chartRef.current = new ChartJS(ctx, {
       type: 'bar',
       data: {
@@ -46,7 +56,7 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
           {
             label: 'Avance por Plantel',
             data,
-            backgroundColor: '#3b82f6',
+            backgroundColor: barColors,
             borderRadius: 6,
             maxBarThickness: 32,
           },
