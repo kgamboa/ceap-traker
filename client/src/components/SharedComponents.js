@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Dashboard.css';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Circle } from 'lucide-react';
 
 export const ProgressBar = ({ percentage, size = 'md' }) => {
   const sizeClasses = {
@@ -99,32 +99,8 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
     return 'Sin CEAP';
   };
 
-  // Obtener última fase completada o fases en proceso
-  const getFaseInfo = () => {
-    if (!ceap || !ceap.fases) {
-      console.log('Plantel sin fases:', plantel.nombre, 'ceap:', ceap);
-      return null;
-    }
-    
-    console.log('Fases para', plantel.nombre, ':', ceap.fases);
-    
-    // Buscar fases en proceso
-    const enProceso = ceap.fases.filter(f => f.estado === 'en_progreso');
-    if (enProceso.length > 0) {
-      return { tipo: 'en_progreso', fases: enProceso };
-    }
-    
-    // Si no hay en proceso, buscar última completada
-    const completadas = ceap.fases.filter(f => f.completado || f.estado === 'completado');
-    if (completadas.length > 0) {
-      const ultima = completadas[completadas.length - 1];
-      return { tipo: 'completado', fases: [ultima] };
-    }
-    
-    return null;
-  };
+  // Las fases ahora se muestran directamente en la lista dentro de la card (ver más abajo)
 
-  const faseInfo = getFaseInfo();
 
   // Ciclo alerta: mostrar si ciclo es 2024-2026 y año actual es 2026
   const showCicloAlerta = ceap && ceap.ciclo_inicio === 2024 && ceap.ciclo_fin === 2026 && new Date().getFullYear() === 2026;
@@ -167,20 +143,28 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
             </div>
           </div>
         )}
-        {faseInfo && (
-          <div style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280' }}>
-            {faseInfo.tipo === 'en_progreso' ? (
-              <div>
-                <strong style={{ color: '#f59e0b' }}>En Proceso:</strong>{' '}
-                {faseInfo.fases.map(f => f.fase_nombre).join(', ')}
-              </div>
-            ) : (
-              <div>
-                <strong style={{ color: '#10b981' }}>Última Completada:</strong>{' '}
-                {faseInfo.fases[0].fase_nombre}
-              </div>
-            )}
-          </div>
+        {/** Mostrar lista completa de fases en la card (check / en progreso / sin iniciar) */}
+        {ceap && ceap.fases && ceap.fases.length > 0 && (
+          <ul className="plantel-fases-list">
+            {ceap.fases.map((f) => {
+              const completed = f.completado || f.estado === 'completado';
+              const inProgress = f.estado === 'en_progreso';
+              return (
+                <li key={f.fase_id || f.id || f.fase_nombre} className={`fase-list-item ${completed ? 'completed' : inProgress ? 'in-progress' : 'not-started'}`}>
+                  {completed ? (
+                    <CheckCircle size={14} color="#10b981" />
+                  ) : inProgress ? (
+                    <Circle size={14} color="#f59e0b" />
+                  ) : (
+                    <Circle size={14} color="#9ca3af" />
+                  )}
+                  <span className="fase-name" style={{ marginLeft: 8, textDecoration: completed ? 'line-through' : 'none', color: completed ? '#6b7280' : '#111827' }}>
+                    {f.fase_nombre}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
