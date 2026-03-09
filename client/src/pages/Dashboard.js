@@ -485,250 +485,250 @@ export const Dashboard = () => {
             ))}
           </div>
 
-            <div className="progress-section">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowChart(!showChart)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                  {showChart ? (
-                    <>
-                      <ChevronUp size={18} /> Ocultar Gráfica
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={18} /> Mostrar Gráfica
-                    </>
-                  )}
-                </button>
-              </div>
-              {showChart && planteles.length > 0 && (
-                <div className="chart-container">
-                  <Bar
-                    data={{
-                      labels: planteles.map(p => p.nombre),
-                      datasets: [
-                        {
-                          label: 'Porcentaje de Avance (%)',
-                          data: planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0),
-                          backgroundColor: planteles.map(p => {
-                            const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-                            if (avance === 100) return '#10b981';
-                            if (avance >= 75) return '#3b82f6';
-                            if (avance >= 50) return '#f59e0b';
-                            if (avance >= 25) return '#ef6444';
-                            return '#9ca3af';
-                          }),
-                          borderRadius: 4,
-                          borderSkipped: false,
-                        }
-                      ]
-                    }}
-                    plugins={[highlightZeroPlugin]}
-                    options={{
-                      indexAxis: 'y',
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          display: true,
-                          position: 'top',
-                        },
-                        tooltip: {
-                          callbacks: {
-                            label: function (context) {
-                              return context.parsed.x + '%';
-                            }
+          <div className="progress-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowChart(!showChart)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                {showChart ? (
+                  <>
+                    <ChevronUp size={18} /> Ocultar Gráfica
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={18} /> Mostrar Gráfica
+                  </>
+                )}
+              </button>
+            </div>
+            {showChart && planteles.length > 0 && (
+              <div className="chart-container">
+                <Bar
+                  data={{
+                    labels: planteles.map(p => p.nombre),
+                    datasets: [
+                      {
+                        label: 'Porcentaje de Avance (%)',
+                        data: planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0),
+                        backgroundColor: planteles.map(p => {
+                          const avance = ceapMap[p.id]?.porcentaje_avance || 0;
+                          if (avance === 100) return '#10b981';
+                          if (avance >= 75) return '#3b82f6';
+                          if (avance >= 50) return '#f59e0b';
+                          if (avance >= 25) return '#ef6444';
+                          return '#9ca3af';
+                        }),
+                        borderRadius: 4,
+                        borderSkipped: false,
+                      }
+                    ]
+                  }}
+                  plugins={[highlightZeroPlugin]}
+                  options={{
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: 'top',
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function (context) {
+                            return context.parsed.x + '%';
                           }
-                        },
-                        datalabels: {
-                          anchor: 'end',
-                          align: 'right',
-                          formatter: function (value) {
-                            return value + '%';
-                          },
-                          color: '#1f2937',
-                          font: {
-                            weight: 'bold',
-                            size: 11
-                          },
-                          padding: 4
                         }
                       },
-                      scales: {
-                        x: {
-                          beginAtZero: true,
-                          max: 100,
-                          ticks: {
-                            callback: function (value) {
-                              return value + '%';
-                            }
+                      datalabels: {
+                        anchor: 'end',
+                        align: 'right',
+                        formatter: function (value) {
+                          return value + '%';
+                        },
+                        color: '#1f2937',
+                        font: {
+                          weight: 'bold',
+                          size: 11
+                        },
+                        padding: 4
+                      }
+                    },
+                    scales: {
+                      x: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                          callback: function (value) {
+                            return value + '%';
                           }
                         }
                       }
-                    }}
-                    height={Math.max(400, planteles.length * 30)}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="planteles-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2>Estatus por Plantel</h2>
-                <div className="filters-container" style={{ display: 'flex', gap: '1rem', flex: 1, justifyContent: 'flex-end' }}>
-                  <div>
-                    <label style={{ marginRight: '0.5rem' }}>Buscar CCT/Plantel:</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: CB139"
-                      value={filterCodigo}
-                      onChange={(e) => setFilterCodigo(e.target.value)}
-                      style={{
-                        padding: '0.5rem',
-                        borderRadius: '4px',
-                        border: '1px solid #d1d5db',
-                        width: '150px'
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ marginRight: '0.5rem' }}>Filtrar por Avance:</label>
-                    <select
-                      value={filterAvance}
-                      onChange={(e) => setFilterAvance(e.target.value)}
-                      style={{
-                        padding: '0.5rem',
-                        borderRadius: '4px',
-                        border: '1px solid #d1d5db'
-                      }}
-                    >
-                      <option value="">Todos</option>
-                      <option value="0-25">0 - 25%</option>
-                      <option value="26-50">26 - 50%</option>
-                      <option value="51-75">51 - 75%</option>
-                      <option value="76-100">76 - 100%</option>
-                      <option value="100">100% Completado</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="planteles-grid">
-                {filteredPlanteles.map(plantel => (
-                  <PlanteleCard
-                    key={plantel.id}
-                    plantel={plantel}
-                    ceap={ceapMap[plantel.id]}
-                    onClick={() => handlePlanteleSelect(plantel)}
-                  />
-                ))}
-              </div>
-              {filteredPlanteles.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-                  No se encontraron planteles que coincidan con los filtros
-                </div>
-              )}
-            </div>
-
-            {/* Modal para crear nuevo Plantel */}
-            {showNewPlantelModal && (
-              <div className="modal-overlay" onClick={() => setShowNewPlantelModal(false)}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <div className="modal-header">
-                    <h2>Agregar Nuevo Plantel</h2>
-                    <button
-                      className="btn-close"
-                      onClick={() => setShowNewPlantelModal(false)}
-                    >
-                      <X size={24} />
-                    </button>
-                  </div>
-
-                  <div className="modal-body">
-                    <div className="form-group">
-                      <label>Nombre del Plantel: <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        value={newPlantelData.nombre}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, nombre: e.target.value })}
-                        placeholder="Ej: CETIS No. 21"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Código: <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        value={newPlantelData.codigo}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, codigo: e.target.value })}
-                        placeholder="Ej: CF021"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Municipio:</label>
-                      <input
-                        type="text"
-                        value={newPlantelData.municipio}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, municipio: e.target.value })}
-                        placeholder="Ej: León"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Director:</label>
-                      <input
-                        type="text"
-                        value={newPlantelData.director_nombre}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, director_nombre: e.target.value })}
-                        placeholder="Nombre del director"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Email del Director:</label>
-                      <input
-                        type="email"
-                        value={newPlantelData.director_email}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, director_email: e.target.value })}
-                        placeholder="director@ejemplo.com"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Teléfono:</label>
-                      <input
-                        type="text"
-                        value={newPlantelData.telefono}
-                        onChange={(e) => setNewPlantelData({ ...newPlantelData, telefono: e.target.value })}
-                        placeholder="Teléfono de contacto"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="modal-footer">
-                    <button
-                      className="btn btn-success"
-                      onClick={handleCreatePlantel}
-                      disabled={savingPlantel}
-                    >
-                      <Plus size={18} /> Crear Plantel
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowNewPlantelModal(false)}
-                      disabled={savingPlantel}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
+                    }
+                  }}
+                  height={Math.max(400, planteles.length * 30)}
+                />
               </div>
             )}
           </div>
-          );
+
+          <div className="planteles-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2>Estatus por Plantel</h2>
+              <div className="filters-container" style={{ display: 'flex', gap: '1rem', flex: 1, justifyContent: 'flex-end' }}>
+                <div>
+                  <label style={{ marginRight: '0.5rem' }}>Buscar CCT/Plantel:</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: CB139"
+                    value={filterCodigo}
+                    onChange={(e) => setFilterCodigo(e.target.value)}
+                    style={{
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid #d1d5db',
+                      width: '150px'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ marginRight: '0.5rem' }}>Filtrar por Avance:</label>
+                  <select
+                    value={filterAvance}
+                    onChange={(e) => setFilterAvance(e.target.value)}
+                    style={{
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid #d1d5db'
+                    }}
+                  >
+                    <option value="">Todos</option>
+                    <option value="0-25">0 - 25%</option>
+                    <option value="26-50">26 - 50%</option>
+                    <option value="51-75">51 - 75%</option>
+                    <option value="76-100">76 - 100%</option>
+                    <option value="100">100% Completado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="planteles-grid">
+              {filteredPlanteles.map(plantel => (
+                <PlanteleCard
+                  key={plantel.id}
+                  plantel={plantel}
+                  ceap={ceapMap[plantel.id]}
+                  onClick={() => handlePlanteleSelect(plantel)}
+                />
+              ))}
+            </div>
+            {filteredPlanteles.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                No se encontraron planteles que coincidan con los filtros
+              </div>
+            )}
+          </div>
+
+          {/* Modal para crear nuevo Plantel */}
+          {showNewPlantelModal && (
+            <div className="modal-overlay" onClick={() => setShowNewPlantelModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>Agregar Nuevo Plantel</h2>
+                  <button
+                    className="btn-close"
+                    onClick={() => setShowNewPlantelModal(false)}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label>Nombre del Plantel: <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      value={newPlantelData.nombre}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, nombre: e.target.value })}
+                      placeholder="Ej: CETIS No. 21"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Código: <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      value={newPlantelData.codigo}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, codigo: e.target.value })}
+                      placeholder="Ej: CF021"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Municipio:</label>
+                    <input
+                      type="text"
+                      value={newPlantelData.municipio}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, municipio: e.target.value })}
+                      placeholder="Ej: León"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Director:</label>
+                    <input
+                      type="text"
+                      value={newPlantelData.director_nombre}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, director_nombre: e.target.value })}
+                      placeholder="Nombre del director"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Email del Director:</label>
+                    <input
+                      type="email"
+                      value={newPlantelData.director_email}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, director_email: e.target.value })}
+                      placeholder="director@ejemplo.com"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Teléfono:</label>
+                    <input
+                      type="text"
+                      value={newPlantelData.telefono}
+                      onChange={(e) => setNewPlantelData({ ...newPlantelData, telefono: e.target.value })}
+                      placeholder="Teléfono de contacto"
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-success"
+                    onClick={handleCreatePlantel}
+                    disabled={savingPlantel}
+                  >
+                    <Plus size={18} /> Crear Plantel
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowNewPlantelModal(false)}
+                    disabled={savingPlantel}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
     };
 
-          export default Dashboard;
+    export default Dashboard;
