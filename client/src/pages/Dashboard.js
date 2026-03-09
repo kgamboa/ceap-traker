@@ -253,7 +253,7 @@ const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   );
 };
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
   const { isAdmin } = useRole();
   const [dashboardData, setDashboardData] = useState(null);
@@ -730,5 +730,6 @@ export const Dashboard = () => {
         </div>
       );
     };
+  };
 
-    export default Dashboard;
+export default Dashboard;
