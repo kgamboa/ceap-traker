@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/Dashboard.css';
+import { AlertCircle, CheckCircle, Circle } from 'lucide-react';
 
 export const ProgressBar = ({ percentage, size = 'md' }) => {
   const sizeClasses = {
@@ -81,7 +82,8 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
             <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
           </p>
         )}
-        {fase.fecha_estimada && (
+        {/* Mostrar Est solo si no está concluido */}
+        {fase.fecha_estimada && !fase.fecha_conclusión && (
           <p className="fase-date-compact">
             <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
           </p>
@@ -133,6 +135,9 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
     });
   };
 
+  // Ciclo alerta: mostrar si ciclo es 2024-2026 y año actual es 2026
+  const showCicloAlerta = ceap && ceap.ciclo_inicio === 2024 && ceap.ciclo_fin === 2026 && new Date().getFullYear() === 2026;
+
   return (
     <div className="plantel-card" onClick={onClick}>
       <div className="plantel-card-header">
@@ -141,6 +146,12 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
       </div>
       <div className="plantel-card-body">
         <p><strong>Ciclo:</strong> {getCEaPCycle()}</p>
+        {showCicloAlerta && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#f59e0b', marginBottom: '4px', marginTop: '-4px' }}>
+            <AlertCircle size={14} style={{ marginRight: '2px' }} />
+            <span>En agosto se debe cambiar de CEAP</span>
+          </div>
+        )}
         <p><strong>Director:</strong> {plantel.director_nombre}</p>
         {ceap && (
           <>
@@ -179,6 +190,29 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
               </div>
             )}
           </>
+        )}
+        {/** Mostrar lista completa de fases en la card (check / en progreso / sin iniciar) */}
+        {ceap && ceap.fases && ceap.fases.length > 0 && (
+          <ul className="plantel-fases-list">
+            {ceap.fases.map((f) => {
+              const completed = f.completado || f.estado === 'completado';
+              const inProgress = f.estado === 'en_progreso';
+              return (
+                <li key={f.fase_id || f.id || f.fase_nombre} className={`fase-list-item ${completed ? 'completed' : inProgress ? 'in-progress' : 'not-started'}`}>
+                  {completed ? (
+                    <CheckCircle size={14} color="#10b981" />
+                  ) : inProgress ? (
+                    <Circle size={14} color="#f59e0b" />
+                  ) : (
+                    <Circle size={14} color="#9ca3af" />
+                  )}
+                  <span className="fase-name" style={{ marginLeft: 8, textDecoration: completed ? 'line-through' : 'none', color: completed ? '#6b7280' : '#111827' }}>
+                    {f.fase_nombre}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
