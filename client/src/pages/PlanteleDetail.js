@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
+import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 
 // Función helper para convertir fecha de servidor a formato YYYY-MM-DD local
@@ -15,7 +17,11 @@ const formatDateForInput = (dateString) => {
   return `${year}-${month}-${day}`;
 };
 
-export const PlanteleDetail = ({ plantel, onBack }) => {
+export const PlanteleDetail = () => {
+  const { plantelCodigo } = useParams();
+  const navigate = useNavigate();
+  const { isAdmin } = useRole();
+  const [plantel, setPlantel] = useState(null);
   const [ceaps, setCeaps] = useState([]);
   const [selectedCeap, setSelectedCeap] = useState(null);
   const [fases, setFases] = useState([]);
@@ -24,14 +30,31 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   const [editingFaseId, setEditingFaseId] = useState(null);
   const [editData, setEditData] = useState({});
   const [editingPlantel, setEditingPlantel] = useState(false);
-  const [plantelData, setPlantelData] = useState(plantel);
+  const [plantelData, setPlantelData] = useState(null);
   const [showNewCeapModal, setShowNewCeapModal] = useState(false);
   const [newCeapData, setNewCeapData] = useState({
     ciclo_inicio: new Date().getFullYear(),
     ciclo_fin: new Date().getFullYear() + 1
   });
 
+  // Fetch plantel by codigo
+  useEffect(() => {
+    const fetchPlantel = async () => {
+      try {
+        const response = await planteleService.getByCodigo(plantelCodigo);
+        setPlantel(response.data);
+        setPlantelData(response.data);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+      }
+    };
+
+    fetchPlantel();
+  }, [plantelCodigo]);
+
   const fetchCeaps = useCallback(async () => {
+    if (!plantel) return;
     try {
       setLoading(true);
       const response = await ceapService.getByPlantel(plantel.id);
@@ -44,7 +67,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     } finally {
       setLoading(false);
     }
-  }, [plantel.id]);
+  }, [plantel]);
 
   const fetchFases = useCallback(async (ceapId) => {
     try {
@@ -56,8 +79,10 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   }, []);
 
   useEffect(() => {
-    fetchCeaps();
-  }, [fetchCeaps]);
+    if (plantel) {
+      fetchCeaps();
+    }
+  }, [plantel, fetchCeaps]);
 
   useEffect(() => {
     if (selectedCeap) {
@@ -72,6 +97,32 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       fecha_estimada: formatDateForInput(currentData.fecha_estimada),
       fecha_conclusión: formatDateForInput(currentData.fecha_conclusión),
       ceapId: selectedCeap.id
+    });
+  };
+
+  const handleEvidenceToggle = (faseId, isChecked) => {
+    // Save evidence status without closing editor
+    const faseData = {
+      ...editData,
+      evidencias_verificadas: isChecked,
+      ceapId: selectedCeap.id,
+      isAdmin
+    };
+
+    ceapService.updateFase(faseId, faseData).then(() => {
+      // Refresh the fases data
+      fetchFases(selectedCeap.id);
+      // Refresh CEAP data to update porcentajes
+      ceapService.getByPlantel(plantel.id).then(response => {
+        setCeaps(response.data);
+        const updatedCeap = response.data.find(c => c.id === selectedCeap.id);
+        if (updatedCeap) {
+          setSelectedCeap(updatedCeap);
+        }
+      });
+    }).catch(err => {
+      console.error(err);
+      alert('Error al guardar las evidencias');
     });
   };
 
@@ -94,7 +145,8 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
       // Si estado es completado, establecer completado como true
       const dataToSave = {
         ...editData,
-        completado: editData.estado === 'completado'
+        completado: editData.estado === 'completado',
+        isAdmin
       };
       await ceapService.updateFase(editingFaseId, dataToSave);
       setEditingFaseId(null);
@@ -115,7 +167,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     }
   };
 
-  const handleExportCeapCSV = async () => {
+  const handleExportCeapExcel = async () => {
     try {
       const response = await exportService.exportCEAPExcel(selectedCeap.id);
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -135,6 +187,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     try {
       setSaving(true);
       await planteleService.update(plantel.id, plantelData);
+      setPlantel(plantelData);
       setEditingPlantel(false);
       alert('Información del plantel actualizada correctamente');
     } catch (err) {
@@ -146,6 +199,11 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   };
 
   const handleCreateCeap = async () => {
+    if (!isAdmin) {
+      alert('Solo los administradores pueden crear CEAP');
+      return;
+    }
+
     try {
       setSaving(true);
       const createResponse = await ceapService.create({
@@ -178,6 +236,11 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
   };
 
   const handleDeleteCeap = async () => {
+    if (!isAdmin) {
+      alert('Solo los administradores pueden eliminar CEAP');
+      return;
+    }
+
     if (!selectedCeap) return;
 
     const confirmed = window.confirm(
@@ -199,14 +262,18 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
     }
   };
 
-  if (loading) {
+  const handleBack = () => {
+    navigate('/');
+  };
+
+  if (loading || !plantel) {
     return <div className="loading">Cargando información del plantel...</div>;
   }
 
   return (
     <div className="plantel-detail">
       <div className="detail-header">
-        <button className="btn btn-secondary" onClick={onBack}>
+        <button className="btn btn-secondary" onClick={handleBack}>
           <ChevronLeft size={20} /> Volver
         </button>
         <div className="detail-title">
@@ -219,15 +286,17 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="info-card">
           <div className="info-card-header">
             <h3>Información del Plantel</h3>
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={() => {
-                setEditingPlantel(true);
-                setPlantelData(plantel);
-              }}
-            >
-              <Edit2 size={16} /> Editar
-            </button>
+            {isAdmin && (
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  setEditingPlantel(true);
+                  setPlantelData(plantel);
+                }}
+              >
+                <Edit2 size={16} /> Editar
+              </button>
+            )}
           </div>
 
           {editingPlantel ? (
@@ -328,12 +397,14 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
         <div className="no-ceap">
           <AlertCircle size={48} />
           <p>No hay CEAP registrado para este plantel</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowNewCeapModal(true)}
-          >
-            <Plus size={18} /> Crear Nuevo CEAP
-          </button>
+          {isAdmin && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowNewCeapModal(true)}
+            >
+              <Plus size={18} /> Crear Nuevo CEAP
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -352,19 +423,23 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               </select>
             </div>
             <div className="ceap-selector-buttons">
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowNewCeapModal(true)}
-              >
-                <Plus size={18} /> Nuevo CEAP
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleDeleteCeap}
-                disabled={saving}
-              >
-                <Trash2 size={18} /> Eliminar
-              </button>
+              {isAdmin && (
+                <>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setShowNewCeapModal(true)}
+                  >
+                    <Plus size={18} /> Nuevo CEAP
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={handleDeleteCeap}
+                    disabled={saving}
+                  >
+                    <Trash2 size={18} /> Eliminar
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -373,7 +448,7 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
               <div className="fases-section">
                 <div className="fases-header">
                   <h2>Fases de Implementación</h2>
-                  <button className="btn btn-primary" onClick={handleExportCeapCSV}>
+                  <button className="btn btn-primary" onClick={handleExportCeapExcel}>
                     <Download size={18} /> Exportar
                   </button>
                 </div>
@@ -430,6 +505,22 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                             />
                           </div>
 
+                          {isAdmin && (
+                            <div className="form-group">
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={editData.evidencias_verificadas || false}
+                                  onChange={(e) => setEditData({ ...editData, evidencias_verificadas: e.target.checked })}
+                                  style={{ cursor: 'pointer' }}
+                                />
+                                <span style={{ fontWeight: '500' }}>
+                                  Evidencias Verificadas
+                                </span>
+                              </label>
+                            </div>
+                          )}
+
                           <div className="form-actions">
                             <button
                               className="btn btn-success"
@@ -448,7 +539,11 @@ export const PlanteleDetail = ({ plantel, onBack }) => {
                         </div>
                       ) : (
                         <>
-                          <FaseStatus fase={fase} />
+                          <FaseStatus
+                            fase={fase}
+                            isAdmin={isAdmin}
+                            onEvidenceToggle={(checked) => handleEvidenceToggle(fase.id, checked)}
+                          />
                           <button
                             className="btn btn-sm btn-primary"
                             onClick={() => handleEditFase(fase.id, fase)}

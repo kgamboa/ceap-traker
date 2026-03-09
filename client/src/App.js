@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import PlanteleDetail from './pages/PlanteleDetail';
 import { useRole } from './hooks/useRole';
@@ -6,18 +7,6 @@ import './App.css';
 
 function App() {
   const { role, setRole } = useRole();
-  const [view, setView] = useState('dashboard'); // 'dashboard' o 'detail'
-  const [selectedPlantel, setSelectedPlantel] = useState(null);
-
-  const handlePlanteleSelect = (plantel) => {
-    setSelectedPlantel(plantel);
-    setView('detail');
-  };
-
-  const handleBack = () => {
-    setView('dashboard');
-    setSelectedPlantel(null);
-  };
 
   const handleRoleChange = (newRole) => {
     setRole(newRole);
@@ -26,37 +15,38 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="app-header-content">
-          <div className="app-header-left">
-            <h1 className="app-title">CEAP Tracker</h1>
-            <p className="app-subtitle">Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
-          </div>
-          <div className="app-header-right">
-            <div className="role-selector">
-              <label>Rol:</label>
-              <select value={role} onChange={(e) => handleRoleChange(e.target.value)}>
-                <option value="user">Usuario</option>
-                <option value="admin">Administrador</option>
-              </select>
+    <Router>
+      <div className="app">
+        <header className="app-header">
+          <div className="app-header-content">
+            <div className="app-header-left">
+              <h1 className="app-title">CEAP Tracker</h1>
+              <p className="app-subtitle">Sistema de Seguimiento CEAP - DGETI Guanajuato</p>
+            </div>
+            <div className="app-header-right">
+              <div className="role-selector">
+                <label>Rol:</label>
+                <select value={role} onChange={(e) => handleRoleChange(e.target.value)}>
+                  <option value="user">Usuario</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="app-main">
-        {view === 'dashboard' ? (
-          <Dashboard onPlanteleSelect={handlePlanteleSelect} />
-        ) : (
-          <PlanteleDetail plantel={selectedPlantel} onBack={handleBack} />
-        )}
-      </main>
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/:plantelCodigo" element={<PlanteleDetail />} />
+          </Routes>
+        </main>
 
-      <footer className="app-footer">
-        <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP</p>
-      </footer>
-    </div>
+        <footer className="app-footer">
+          <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP</p>
+        </footer>
+      </div>
+    </Router>
   );
 }
 

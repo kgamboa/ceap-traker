@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const routes = require('./routes/index');
 const fs = require('fs');
+const { runMigrations } = require('./config/migrations');
 
 const app = express();
 
@@ -82,6 +83,10 @@ const PORT = process.env.PORT || 5000;
 // Esperar a que PostgreSQL esté disponible
 waitForDatabase()
   .then(async (pool) => {
+    // Ejecutar migraciones antes de iniciar el servidor
+    console.log('🔄 Verificando y ejecutando migraciones...');
+    await runMigrations();
+
     await pool.end();
 
     app.listen(PORT, () => {

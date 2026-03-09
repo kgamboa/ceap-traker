@@ -13,7 +13,10 @@ class CEaPModel {
     const result = await pool.query(
       `SELECT c.*, p.nombre as plantel_nombre,
         COUNT(cf.id) as total_fases,
-        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
+        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas,
+        MAX(cf.ultima_actualizacion_usuario) as ultima_actualizacion_usuario,
+        MAX(cf.ultima_actualizacion_admin) as ultima_actualizacion_admin,
+        MAX(cf.ultima_actualizacion_documento) as ultima_actualizacion_documento
        FROM ceaps c
        JOIN planteles p ON c.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON c.id = cf.ceap_id
@@ -50,7 +53,10 @@ class CEaPModel {
         COALESCE(cr.porcentaje_avance, 0)::integer as porcentaje_avance,
         cr.created_at,
         COUNT(cf.id) as total_fases,
-        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas
+        COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas,
+        MAX(cf.ultima_actualizacion_usuario) as ultima_actualizacion_usuario,
+        MAX(cf.ultima_actualizacion_admin) as ultima_actualizacion_admin,
+        MAX(cf.ultima_actualizacion_documento) as ultima_actualizacion_documento
        FROM ceaps_recientes cr
        JOIN planteles p ON cr.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON cr.id = cf.ceap_id
@@ -72,18 +78,22 @@ class CEaPModel {
   }
 
   static async updateProgress(ceapId) {
-    // Calcular porcentaje de avance
+    // Calcular porcentaje de avance basado en el estado de verificación de evidencias
+    // Verificado = 100%, Completado = 75%, En Progreso = 50%
     const progressResult = await pool.query(
       `SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN completado = true THEN 1 ELSE 0 END) as completadas
+        SUM(CASE WHEN evidencias_verificadas = true THEN 100
+                 WHEN completado = true THEN 75
+                 WHEN estado = 'en_progreso' THEN 50
+                 ELSE 0 END) as total_puntos
        FROM ceap_fases
        WHERE ceap_id = $1`,
       [ceapId]
     );
 
-    const { total, completadas } = progressResult.rows[0];
-    const percentage = total > 0 ? Math.round((completadas / total) * 100) : 0;
+    const { total, total_puntos } = progressResult.rows[0];
+    const percentage = total > 0 ? Math.round((total_puntos / (total * 100)) * 100) : 0;
 
     const result = await pool.query(
       `UPDATE ceaps 

@@ -4,6 +4,7 @@ const planteleController = require('../controllers/planteleController');
 const router = express.Router();
 
 router.get('/', planteleController.getAllPlanteles);
+router.get('/codigo/:codigo', planteleController.getPlanteleByCodigo);
 router.get('/:id', planteleController.getPlanteleById);
 router.post('/', planteleController.createPlantel);
 router.put('/:id', planteleController.updatePlantel);

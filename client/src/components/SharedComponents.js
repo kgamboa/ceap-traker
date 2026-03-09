@@ -31,7 +31,7 @@ export const StatCard = ({ title, value, icon, color = 'blue' }) => {
   );
 };
 
-export const FaseStatus = ({ fase }) => {
+export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) => {
   const getStatusColor = (estado) => {
     switch (estado) {
       case 'completado': return '#10b981';
@@ -48,6 +48,11 @@ export const FaseStatus = ({ fase }) => {
       case 'no_iniciado': return 'No Iniciado';
       default: return estado;
     }
+  };
+
+  const getEvidenceStatus = (evidenciasVerificadas) => {
+    if (evidenciasVerificadas) return 'Verificado';
+    return 'No Verificado';
   };
 
   const formatDate = (dateString) => {
@@ -82,6 +87,26 @@ export const FaseStatus = ({ fase }) => {
           </p>
         )}
       </div>
+      {isAdmin && (
+        <div className="fase-evidence-section" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={fase.evidencias_verificadas || false}
+              onChange={(e) => onEvidenceToggle && onEvidenceToggle(e.target.checked)}
+              style={{ cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+              Evidencias Verificadas
+            </span>
+          </label>
+          {fase.fecha_verificacion && (
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', marginBottom: 0 }}>
+              Verificado: {formatDate(fase.fecha_verificacion)}
+            </p>
+          )}
+        </div>
+      )}
       {fase.observaciones && (
         <p className="fase-notes-compact">{fase.observaciones}</p>
       )}
@@ -97,6 +122,17 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
     return 'Sin CEAP';
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="plantel-card" onClick={onClick}>
       <div className="plantel-card-header">
@@ -107,27 +143,42 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
         <p><strong>Ciclo:</strong> {getCEaPCycle()}</p>
         <p><strong>Director:</strong> {plantel.director_nombre}</p>
         {ceap && (
-          <div className="plantel-progress">
-            <small>Avance: {ceap.porcentaje_avance}%</small>
-            <div style={{ backgroundColor: '#e5e7eb', borderRadius: '4px', height: '8px', marginTop: '4px' }}>
-              <div
-                style={{
-                  backgroundColor: (() => {
-                    const avance = ceap.porcentaje_avance;
-                    if (avance === 100) return '#10b981';
-                    if (avance >= 75) return '#3b82f6';
-                    if (avance >= 50) return '#f59e0b';
-                    if (avance >= 25) return '#ef6444';
-                    return '#9ca3af';
-                  })(),
-                  width: `${ceap.porcentaje_avance}%`,
-                  height: '100%',
-                  borderRadius: '4px',
-                  transition: 'width 0.3s ease'
-                }}
-              />
+          <>
+            <div className="plantel-progress">
+              <small>Avance: {ceap.porcentaje_avance}%</small>
+              <div style={{ backgroundColor: '#e5e7eb', borderRadius: '4px', height: '8px', marginTop: '4px' }}>
+                <div
+                  style={{
+                    backgroundColor: (() => {
+                      const avance = ceap.porcentaje_avance;
+                      if (avance === 100) return '#10b981';
+                      if (avance >= 75) return '#3b82f6';
+                      if (avance >= 50) return '#f59e0b';
+                      if (avance >= 25) return '#ef6444';
+                      return '#9ca3af';
+                    })(),
+                    width: `${ceap.porcentaje_avance}%`,
+                    height: '100%',
+                    borderRadius: '4px',
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              </div>
             </div>
-          </div>
+            {(ceap.ultima_actualizacion_usuario || ceap.ultima_actualizacion_admin || ceap.ultima_actualizacion_documento) && (
+              <div className="plantel-timestamps" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>
+                {ceap.ultima_actualizacion_usuario && (
+                  <p><strong>Últ. usuario:</strong> {formatDateTime(ceap.ultima_actualizacion_usuario)}</p>
+                )}
+                {ceap.ultima_actualizacion_admin && (
+                  <p><strong>Últ. admin:</strong> {formatDateTime(ceap.ultima_actualizacion_admin)}</p>
+                )}
+                {ceap.ultima_actualizacion_documento && (
+                  <p><strong>Últ. documento:</strong> {new Date(ceap.ultima_actualizacion_documento).toLocaleDateString('es-MX')}</p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

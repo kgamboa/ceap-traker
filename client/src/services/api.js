@@ -13,6 +13,7 @@ const api = axios.create({
 export const planteleService = {
   getAll: () => api.get('/planteles'),
   getById: (id) => api.get(`/planteles/${id}`),
+  getByCodigo: (codigo) => api.get(`/planteles/codigo/${codigo}`),
   create: (datos) => api.post('/planteles', datos),
   update: (id, datos) => api.put(`/planteles/${id}`, datos)
 };

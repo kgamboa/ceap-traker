@@ -16,6 +16,14 @@ class PlanteleModel {
     return result.rows[0];
   }
 
+  static async getByCodigo(codigo) {
+    const result = await pool.query(
+      'SELECT * FROM planteles WHERE codigo = $1 AND activo = true',
+      [codigo]
+    );
+    return result.rows[0];
+  }
+
   static async create(datos) {
     const { nombre, codigo, estado, municipio, director_email, director_nombre, telefono } = datos;
     const result = await pool.query(
