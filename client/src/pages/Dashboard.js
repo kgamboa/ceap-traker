@@ -300,11 +300,8 @@ const Dashboard = () => {
       const avanceMin = parseInt(filterAvance);
       filtered = filtered.filter(p => {
         const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-        if (filterAvance === '0-25') return avance >= 0 && avance <= 25;
-        if (filterAvance === '26-50') return avance > 25 && avance <= 50;
-        if (filterAvance === '51-75') return avance > 50 && avance <= 75;
-        if (filterAvance === '76-100') return avance > 75 && avance <= 100;
-        if (filterAvance === '100') return avance === 100;
+        if (filterAvance === '<50') return avance < 50;
+        if (filterAvance === '>=50') return avance >= 50;
         return true;
       });
     }
@@ -339,6 +336,16 @@ const Dashboard = () => {
     }
   };
 
+  const downloadFile = (blob, filename, type) => {
+    const url = window.URL.createObjectURL(new Blob([blob], { type }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+  };
+
   const handleExportExcel = async () => {
     try {
       setExporting(true);
@@ -346,15 +353,11 @@ const Dashboard = () => {
       downloadFile(response.data, 'reporte-ceap.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     } catch (err) {
       console.error(err);
-      const downloadFile = (blob, filename, type) => {
-        const url = window.URL.createObjectURL(new Blob([blob], { type }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
-      };
+      alert('Error al exportar');
+    } finally {
+      setExporting(false);
+    }
+  };
 
       const handleCreatePlantel = async () => {
         if (!newPlantelData.nombre || !newPlantelData.codigo) {
@@ -454,23 +457,34 @@ const Dashboard = () => {
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                placeholder="Buscar por CCT o nombre del plantel..."
+                placeholder="Buscar por CCT (código) o nombre del plantel..."
                 value={filterCodigo}
                 onChange={(e) => setFilterCodigo(e.target.value)}
                 style={{ flex: 1, minWidth: 200, padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
               />
-              <select
-                value={filterAvance}
-                onChange={(e) => setFilterAvance(e.target.value)}
-                style={{ minWidth: 150, padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-              >
-                <option value="">Todos los niveles</option>
-                <option value="0-25">0-25%</option>
-                <option value="26-50">26-50%</option>
-                <option value="51-75">51-75%</option>
-                <option value="76-100">76-100%</option>
-                <option value="100">100% Completado</option>
-              </select>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  className={`btn ${filterAvance === '' || filterAvance === 'todo' ? 'btn-primary' : 'btn-secondary'}`} 
+                  onClick={() => setFilterAvance('todo')}
+                  style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
+                >
+                  Todos
+                </button>
+                <button 
+                  className={`btn ${filterAvance === '<50' ? 'btn-primary' : 'btn-secondary'}`} 
+                  onClick={() => setFilterAvance('<50')}
+                  style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
+                >
+                  En proceso {'<'}50%
+                </button>
+                <button 
+                  className={`btn ${filterAvance === '>=50' ? 'btn-primary' : 'btn-secondary'}`} 
+                  onClick={() => setFilterAvance('>=50')}
+                  style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
+                >
+                  En proceso {'≥'}50%
+                </button>
+              </div>
             </div>
           </div>
 
@@ -594,24 +608,28 @@ const Dashboard = () => {
                     }}
                   />
                 </div>
-                <div>
-                  <label style={{ marginRight: '0.5rem' }}>Filtrar por Avance:</label>
-                  <select
-                    value={filterAvance}
-                    onChange={(e) => setFilterAvance(e.target.value)}
-                    style={{
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      border: '1px solid #d1d5db'
-                    }}
-                  >
-                    <option value="">Todos</option>
-                    <option value="0-25">0 - 25%</option>
-                    <option value="26-50">26 - 50%</option>
-                    <option value="51-75">51 - 75%</option>
-                    <option value="76-100">76 - 100%</option>
-                    <option value="100">100% Completado</option>
-                  </select>
+                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                    <button 
+                      className={`btn ${filterAvance === '' || filterAvance === 'todo' ? 'btn-primary' : 'btn-secondary'}`} 
+                      onClick={() => setFilterAvance('todo')}
+                      style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '' || filterAvance === 'todo' ? 'none' : '1px solid #d1d5db' }}
+                    >
+                      Todos
+                    </button>
+                    <button 
+                      className={`btn ${filterAvance === '<50' ? 'btn-primary' : 'btn-secondary'}`} 
+                      onClick={() => setFilterAvance('<50')}
+                      style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '<50' ? 'none' : '1px solid #d1d5db' }}
+                    >
+                      {'<'}50%
+                    </button>
+                    <button 
+                      className={`btn ${filterAvance === '>=50' ? 'btn-primary' : 'btn-secondary'}`} 
+                      onClick={() => setFilterAvance('>=50')}
+                      style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '>=50' ? 'none' : '1px solid #d1d5db' }}
+                    >
+                      {'≥'}50%
+                    </button>
                 </div>
               </div>
             </div>

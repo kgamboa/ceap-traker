@@ -138,6 +138,13 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
   // Ciclo alerta: mostrar si ciclo es 2024-2026 y año actual es 2026
   const showCicloAlerta = ceap && ceap.ciclo_inicio === 2024 && ceap.ciclo_fin === 2026 && new Date().getFullYear() === 2026;
 
+  const formatDateShort = (dateString) => {
+    if (!dateString) return '';
+    const dateOnly = dateString.split('T')[0];
+    const [year, month, day] = dateOnly.split('-');
+    return `${day}/${month}/${year.slice(2)}`;
+  };
+
   return (
     <div className="plantel-card" onClick={onClick}>
       <div className="plantel-card-header">
@@ -193,12 +200,12 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
         )}
         {/** Mostrar lista completa de fases en la card (check / en progreso / sin iniciar) */}
         {ceap && ceap.fases && ceap.fases.length > 0 && (
-          <ul className="plantel-fases-list">
+          <ul className="plantel-fases-list" style={{ marginTop: '0.75rem', paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {ceap.fases.map((f) => {
               const completed = f.completado || f.estado === 'completado';
               const inProgress = f.estado === 'en_progreso';
               return (
-                <li key={f.fase_id || f.id || f.fase_nombre} className={`fase-list-item ${completed ? 'completed' : inProgress ? 'in-progress' : 'not-started'}`}>
+                <li key={f.fase_id || f.id || f.fase_nombre} className={`fase-list-item ${completed ? 'completed' : inProgress ? 'in-progress' : 'not-started'}`} style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
                   {completed ? (
                     <CheckCircle size={14} color="#10b981" />
                   ) : inProgress ? (
@@ -206,8 +213,11 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
                   ) : (
                     <Circle size={14} color="#9ca3af" />
                   )}
-                  <span className="fase-name" style={{ marginLeft: 8, textDecoration: completed ? 'line-through' : 'none', color: completed ? '#6b7280' : '#111827' }}>
+                  <span className="fase-name" style={{ marginLeft: 8, flex: 1, textDecoration: completed ? 'line-through' : 'none', color: completed ? '#6b7280' : '#111827' }}>
                     {f.fase_nombre}
+                  </span>
+                  <span className="fase-date" style={{ marginLeft: 'auto', color: '#6b7280', fontSize: '11px' }}>
+                    {f.fecha_conclusión ? formatDateShort(f.fecha_conclusión) : f.fecha_estimada ? `est. ${formatDateShort(f.fecha_estimada)}` : ''}
                   </span>
                 </li>
               );
