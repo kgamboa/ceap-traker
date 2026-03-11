@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
+import { Download, BarChart3, AlertCircle, Plus, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,6 +22,21 @@ import { useRole } from '../hooks/useRole';
 import '../styles/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
+
+const highlightZeroPlugin = {
+  id: 'highlightZero',
+  beforeDatasetsDraw(chart) {
+    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+    ctx.save();
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.moveTo(x.getPixelForValue(0), top);
+    ctx.lineTo(x.getPixelForValue(0), bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
 
 // Gráfica de barras: Avance por Plantel (para móvil)
 const AvanceBarChart = ({ planteles, ceapMap, media }) => {
