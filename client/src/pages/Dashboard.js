@@ -39,6 +39,7 @@ const highlightZeroPlugin = {
 };
 
 // Gráfica de barras: Avance por Plantel (para móvil)
+// eslint-disable-next-line no-unused-vars
 const AvanceBarChart = ({ planteles, ceapMap, media }) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
@@ -160,6 +161,7 @@ const AvanceBarChart = ({ planteles, ceapMap, media }) => {
 
 
 // Nueva gráfica: Avance por Plantel con línea de media
+// eslint-disable-next-line no-unused-vars
 const AvanceLineChart = ({ planteles, ceapMap, media }) => {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
@@ -313,6 +315,7 @@ const Dashboard = () => {
 
     // Filtro por avance
     if (filterAvance) {
+      // eslint-disable-next-line no-unused-vars
       const avanceMin = parseInt(filterAvance);
       filtered = filtered.filter(p => {
         const avance = ceapMap[p.id]?.porcentaje_avance || 0;

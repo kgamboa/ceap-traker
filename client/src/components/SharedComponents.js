@@ -51,6 +51,7 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getEvidenceStatus = (evidenciasVerificadas) => {
     if (evidenciasVerificadas) return 'Verificado';
     return 'No Verificado';
