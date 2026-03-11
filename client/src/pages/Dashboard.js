@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -283,7 +283,6 @@ const Dashboard = () => {
   const [exporting, setExporting] = useState(false);
   const [showNewPlantelModal, setShowNewPlantelModal] = useState(false);
   const [savingPlantel, setSavingPlantel] = useState(false);
-  const [showChart, setShowChart] = useState(false);
   const [filterCodigo, setFilterCodigo] = useState('');
   const [filterAvance, setFilterAvance] = useState('');
   const [newPlantelData, setNewPlantelData] = useState({
@@ -320,7 +319,8 @@ const Dashboard = () => {
       filtered = filtered.filter(p => {
         const avance = ceapMap[p.id]?.porcentaje_avance || 0;
         if (filterAvance === '<50') return avance < 50;
-        if (filterAvance === '>=50') return avance >= 50;
+        if (filterAvance === '>=50') return avance >= 50 && avance < 100;
+        if (filterAvance === '100') return avance === 100;
         return true;
       });
     }
@@ -472,72 +472,43 @@ const Dashboard = () => {
             />
           </div>
 
-          <div className="filters-section">
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              <input
-                type="text"
-                placeholder="Buscar por CCT (código) o nombre del plantel..."
-                value={filterCodigo}
-                onChange={(e) => setFilterCodigo(e.target.value)}
-                style={{ flex: 1, minWidth: 200, padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-              />
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button 
-                  className={`btn ${filterAvance === '' || filterAvance === 'todo' ? 'btn-primary' : 'btn-secondary'}`} 
-                  onClick={() => setFilterAvance('todo')}
-                  style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
-                >
-                  Todos
-                </button>
-                <button 
-                  className={`btn ${filterAvance === '<50' ? 'btn-primary' : 'btn-secondary'}`} 
-                  onClick={() => setFilterAvance('<50')}
-                  style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
-                >
-                  En proceso {'<'}50%
-                </button>
-                <button 
-                  className={`btn ${filterAvance === '>=50' ? 'btn-primary' : 'btn-secondary'}`} 
-                  onClick={() => setFilterAvance('>=50')}
-                  style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.5rem 1rem' }}
-                >
-                  En proceso {'≥'}50%
-                </button>
+          <div className="top-5-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div className="top-5-box">
+              <h3 style={{ color: '#10b981', borderBottom: '2px solid #10b981', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Top 5 Mejores Avances</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[...planteles]
+                  .sort((a, b) => (ceapMap[b.id]?.porcentaje_avance || 0) - (ceapMap[a.id]?.porcentaje_avance || 0))
+                  .slice(0, 5)
+                  .map((p, idx) => (
+                    <div key={`mejor-${p.id}`} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', backgroundColor: '#f9fafb', borderRadius: '4px', fontSize: '0.9rem' }}>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><strong>{idx + 1}.</strong> {p.codigo} - {p.nombre}</span>
+                      <strong style={{ color: '#10b981', marginLeft: '0.5rem' }}>{ceapMap[p.id]?.porcentaje_avance || 0}%</strong>
+                    </div>
+                  ))}
               </div>
             </div>
-          </div>
-
-          <div className="planteles-grid">
-            {filteredPlanteles.map(plantel => (
-              <PlanteleCard
-                key={plantel.id}
-                plantel={plantel}
-                ceap={ceapMap[plantel.id]}
-                onClick={() => navigate(`/${plantel.codigo}`)}
-              />
-            ))}
+            
+            <div className="top-5-box">
+              <h3 style={{ color: '#ef6444', borderBottom: '2px solid #ef6444', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Top 5 Menores Avances</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[...planteles]
+                  .sort((a, b) => (ceapMap[a.id]?.porcentaje_avance || 0) - (ceapMap[b.id]?.porcentaje_avance || 0))
+                  .slice(0, 5)
+                  .map((p, idx) => (
+                    <div key={`menor-${p.id}`} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', backgroundColor: '#f9fafb', borderRadius: '4px', fontSize: '0.9rem' }}>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><strong>{idx + 1}.</strong> {p.codigo} - {p.nombre}</span>
+                      <strong style={{ color: '#ef6444', marginLeft: '0.5rem' }}>{ceapMap[p.id]?.porcentaje_avance || 0}%</strong>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
 
           <div className="progress-section">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowChart(!showChart)}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                {showChart ? (
-                  <>
-                    <ChevronUp size={18} /> Ocultar Gráfica
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown size={18} /> Mostrar Gráfica
-                  </>
-                )}
-              </button>
             </div>
-            {showChart && planteles.length > 0 && (
+            {planteles.length > 0 && (
               <div className="chart-container">
                 <Bar
                   data={{
@@ -611,43 +582,50 @@ const Dashboard = () => {
           <div className="planteles-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2>Estatus por Plantel</h2>
-              <div className="filters-container" style={{ display: 'flex', gap: '1rem', flex: 1, justifyContent: 'flex-end' }}>
-                <div>
-                  <label style={{ marginRight: '0.5rem' }}>Buscar CCT/Plantel:</label>
+              <div className="filters-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, alignItems: 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <label style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>Buscar CCT/Plantel:</label>
                   <input
                     type="text"
-                    placeholder="Ej: CB139"
+                    placeholder="Ej: CB139 o Irapuato"
                     value={filterCodigo}
                     onChange={(e) => setFilterCodigo(e.target.value)}
                     style={{
                       padding: '0.5rem',
                       borderRadius: '4px',
                       border: '1px solid #d1d5db',
-                      width: '150px'
+                      width: '250px'
                     }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <button 
                       className={`btn ${filterAvance === '' || filterAvance === 'todo' ? 'btn-primary' : 'btn-secondary'}`} 
                       onClick={() => setFilterAvance('todo')}
-                      style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '' || filterAvance === 'todo' ? 'none' : '1px solid #d1d5db' }}
+                      style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '' || filterAvance === 'todo' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
                     >
                       Todos
                     </button>
                     <button 
                       className={`btn ${filterAvance === '<50' ? 'btn-primary' : 'btn-secondary'}`} 
                       onClick={() => setFilterAvance('<50')}
-                      style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '<50' ? 'none' : '1px solid #d1d5db' }}
+                      style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '<50' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
                     >
                       {'<'}50%
                     </button>
                     <button 
                       className={`btn ${filterAvance === '>=50' ? 'btn-primary' : 'btn-secondary'}`} 
                       onClick={() => setFilterAvance('>=50')}
-                      style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '>=50' ? 'none' : '1px solid #d1d5db' }}
+                      style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '>=50' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
                     >
                       {'≥'}50%
+                    </button>
+                    <button 
+                      className={`btn ${filterAvance === '100' ? 'btn-primary' : 'btn-secondary'}`} 
+                      onClick={() => setFilterAvance('100')}
+                      style={{ backgroundColor: filterAvance === '100' ? '#10b981' : 'transparent', color: filterAvance === '100' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '100' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
+                    >
+                      Completos 100%
                     </button>
                 </div>
               </div>

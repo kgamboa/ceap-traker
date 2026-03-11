@@ -56,7 +56,17 @@ class CEaPModel {
         COALESCE(SUM(CASE WHEN cf.completado = true THEN 1 ELSE 0 END), 0)::integer as fases_completadas,
         MAX(cf.ultima_actualizacion_usuario) as ultima_actualizacion_usuario,
         MAX(cf.ultima_actualizacion_admin) as ultima_actualizacion_admin,
-        MAX(cf.ultima_actualizacion_documento) as ultima_actualizacion_documento
+        MAX(cf.ultima_actualizacion_documento) as ultima_actualizacion_documento,
+        json_agg(
+          json_build_object(
+            'id', cf.id,
+            'fase_nombre', cf.fase_nombre,
+            'estado', cf.estado,
+            'completado', cf.completado,
+            'fecha_estimada', cf.fecha_estimada,
+            'fecha_conclusión', cf.fecha_conclusión
+          )
+        ) FILTER (WHERE cf.id IS NOT NULL) as fases
        FROM ceaps_recientes cr
        JOIN planteles p ON cr.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON cr.id = cf.ceap_id
