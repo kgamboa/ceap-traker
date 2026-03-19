@@ -60,7 +60,7 @@ class CEaPModel {
         json_agg(
           json_build_object(
             'id', cf.id,
-            'fase_nombre', cf.fase_nombre,
+            'fase_nombre', f.nombre,
             'estado', cf.estado,
             'completado', cf.completado,
             'fecha_estimada', cf.fecha_estimada,
@@ -70,6 +70,7 @@ class CEaPModel {
        FROM ceaps_recientes cr
        JOIN planteles p ON cr.plantel_id = p.id
        LEFT JOIN ceap_fases cf ON cr.id = cf.ceap_id
+       LEFT JOIN fases f ON cf.fase_id = f.id
        GROUP BY cr.id, cr.plantel_id, p.nombre, p.codigo, cr.ciclo_inicio, cr.ciclo_fin, cr.estado, cr.porcentaje_avance, cr.created_at
        ORDER BY p.nombre`,
       []
