@@ -84,8 +84,8 @@ class CEaPFaseModel {
            fecha_completado = CASE WHEN $5 = true THEN CURRENT_DATE ELSE fecha_completado END,
            evidencias_verificadas = COALESCE($6, evidencias_verificadas),
            fecha_verificacion = CASE WHEN $6 = true THEN CURRENT_DATE ELSE fecha_verificacion END,
-           ultima_actualizacion_usuario = CASE WHEN $11::boolean = false THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_usuario END,
-           ultima_actualizacion_admin = CASE WHEN $11::boolean = true THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_admin END,
+           ultima_actualizacion_usuario = CASE WHEN $9::boolean = false THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_usuario END,
+           ultima_actualizacion_admin = CASE WHEN $9::boolean = true THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_admin END,
            ultima_actualizacion_documento = COALESCE($7, ultima_actualizacion_documento),
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $8
@@ -99,8 +99,6 @@ class CEaPFaseModel {
         evidencias_verificadas,
         ultima_actualizacion_documento,
         ceapFaseId,
-        null, // placeholder
-        null, // placeholder
         isAdmin
       ]
     );
