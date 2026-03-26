@@ -285,6 +285,8 @@ const Dashboard = () => {
   const [savingPlantel, setSavingPlantel] = useState(false);
   const [filterCodigo, setFilterCodigo] = useState('');
   const [filterAvance, setFilterAvance] = useState('');
+  const [showNoRevisados, setShowNoRevisados] = useState(false);
+  const [filterFechaRevision, setFilterFechaRevision] = useState(new Date().toISOString().split('T')[0]);
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -293,6 +295,18 @@ const Dashboard = () => {
     director_nombre: '',
     director_email: '',
     telefono: ''
+  });
+
+  const filterButtonStyle = (isActive) => ({
+    backgroundColor: isActive ? '#3b82f6' : 'transparent',
+    color: isActive ? 'white' : '#4b5563',
+    padding: '0.4rem 1rem',
+    fontSize: '14px',
+    border: '1px solid #d1d5db',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    fontWeight: isActive ? 'bold' : 'normal',
+    transition: 'all 0.2s'
   });
 
   useEffect(() => {
@@ -313,9 +327,7 @@ const Dashboard = () => {
     }
 
     // Filtro por avance
-    if (filterAvance) {
-      // eslint-disable-next-line no-unused-vars
-      const avanceMin = parseInt(filterAvance);
+    if (filterAvance && filterAvance !== 'todo') {
       filtered = filtered.filter(p => {
         const avance = ceapMap[p.id]?.porcentaje_avance || 0;
         if (filterAvance === '<50') return avance < 50;
@@ -325,8 +337,19 @@ const Dashboard = () => {
       });
     }
 
+    // Filtro por fecha de revisión (admin)
+    if (showNoRevisados) {
+      const filterDate = new Date(filterFechaRevision);
+      filtered = filtered.filter(p => {
+        const ceap = ceapMap[p.id];
+        if (!ceap || !ceap.ultima_actualizacion_admin) return true; // Si no hay revisión, entra en el filtro
+        const lastAdminDate = new Date(ceap.ultima_actualizacion_admin);
+        return lastAdminDate < filterDate;
+      });
+    }
+
     setFilteredPlanteles(filtered);
-  }, [filterCodigo, filterAvance, planteles, ceapMap]);
+  }, [filterCodigo, filterAvance, showNoRevisados, filterFechaRevision, planteles, ceapMap]);
 
   const fetchDashboardData = async () => {
     try {
@@ -469,6 +492,7 @@ const Dashboard = () => {
               value={`${stats.porcentajeGlobal || 0}%`}
               icon={<BarChart3 size={24} />}
               color="purple"
+              subtitle={`Total Captura: ${stats.avanceCapturaGlobal || 0}% / Total Verif: ${stats.avanceVerificacionGlobal || 0}%`}
             />
           </div>
 
@@ -504,29 +528,35 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="progress-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h2 style={{ margin: 0 }}>Avance Global por Plantel</h2>
-            </div>
+          <div className="progress-section" style={{ marginTop: '2rem' }}>
+            <h2 style={{ marginBottom: '1.5rem' }}>Avance por Tipo (Captura vs Verificación)</h2>
             {planteles.length > 0 && (
-              <div className="chart-container">
+              <div className="chart-container" style={{ height: Math.max(400, planteles.length * 35), minHeight: '400px' }}>
                 <Bar
                   data={{
-                    labels: planteles.map(p => p.nombre),
+                    labels: planteles.map(p => p.codigo || p.nombre),
                     datasets: [
                       {
-                        label: 'Porcentaje de Avance (%)',
-                        data: planteles.map(p => ceapMap[p.id]?.porcentaje_avance || 0),
-                        backgroundColor: planteles.map(p => {
-                          const avance = ceapMap[p.id]?.porcentaje_avance || 0;
-                          if (avance === 100) return '#10b981';
-                          if (avance >= 75) return '#3b82f6';
-                          if (avance >= 50) return '#f59e0b';
-                          if (avance >= 25) return '#ef6444';
-                          return '#9ca3af';
+                        label: 'Avance Captura (75%)',
+                        data: planteles.map(p => {
+                          const ceap = ceapMap[p.id];
+                          if (!ceap) return 0;
+                          return ( (ceap.avance_captura || 0) * 0.75 ).toFixed(1);
                         }),
+                        backgroundColor: '#3b82f6',
                         borderRadius: 4,
-                        borderSkipped: false,
+                        barThickness: 24,
+                      },
+                      {
+                        label: 'Avance Verificación (25%)',
+                        data: planteles.map(p => {
+                          const ceap = ceapMap[p.id];
+                          if (!ceap) return 0;
+                          return ( (ceap.avance_verificacion || 0) * 0.25 ).toFixed(1);
+                        }),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4,
+                        barThickness: 24,
                       }
                     ]
                   }}
@@ -536,97 +566,118 @@ const Dashboard = () => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                      legend: {
-                        display: true,
-                        position: 'top',
-                      },
+                      legend: { display: true, position: 'top' },
                       tooltip: {
+                        mode: 'index',
+                        intersect: false,
                         callbacks: {
-                          label: function (context) {
-                            return context.parsed.x + '%';
+                          label: function(context) {
+                            const val = parseFloat(context.parsed.x).toFixed(1);
+                            return `${context.dataset.label}: ${val}%`;
+                          },
+                          footer: (items) => {
+                            const total = items.reduce((a, b) => a + parseFloat(b.parsed.x), 0);
+                            return `Avance Total: ${total.toFixed(1)}%`;
                           }
                         }
                       },
                       datalabels: {
-                        anchor: 'end',
-                        align: 'right',
-                        formatter: function (value) {
-                          return value + '%';
-                        },
-                        color: '#1f2937',
-                        font: {
-                          weight: 'bold',
-                          size: 11
-                        },
-                        padding: 4
+                        display: false // Evitamos ruido en gráfica apilada
                       }
                     },
                     scales: {
                       x: {
+                        stacked: true,
                         beginAtZero: true,
                         max: 100,
-                        ticks: {
-                          callback: function (value) {
-                            return value + '%';
-                          }
-                        }
+                        ticks: { callback: (v) => v + '%' },
+                        title: { display: true, text: 'Porcentaje Ponderado (%)' }
+                      },
+                      y: {
+                        stacked: true,
+                        ticks: { font: { size: 10, weight: 'bold' } }
                       }
                     }
                   }}
-                  height={Math.max(400, planteles.length * 30)}
                 />
               </div>
             )}
           </div>
 
-          <div className="planteles-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2>Estatus por Plantel</h2>
-              <div className="filters-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, alignItems: 'flex-end' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <label style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>Buscar CCT/Plantel:</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: CB139 o Irapuato"
-                    value={filterCodigo}
-                    onChange={(e) => setFilterCodigo(e.target.value)}
-                    style={{
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      border: '1px solid #d1d5db',
-                      width: '250px'
-                    }}
-                  />
+          <div className="planteles-section" style={{ marginTop: '2rem' }}>
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>Estatus por Plantel</h2>
+              
+              <div className="filters-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Primera Fila: Buscador y Fecha */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div className="search-box" style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+                    <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+                      <BarChart3 size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Buscar por CCT (código) o nombre"
+                      value={filterCodigo}
+                      onChange={(e) => setFilterCodigo(e.target.value)}
+                      style={{
+                        padding: '0.6rem 0.6rem 0.6rem 2.5rem',
+                        borderRadius: '6px',
+                        border: '1px solid #d1d5db',
+                        width: '100%',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div className="date-filter" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: '#f9fafb' }}>
+                    <input 
+                      type="checkbox" 
+                      id="noRevisados"
+                      checked={showNoRevisados}
+                      onChange={(e) => setShowNoRevisados(e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="noRevisados" style={{ cursor: 'pointer', fontSize: '14px' }}>No revisados desde:</label>
+                    <input 
+                      type="date" 
+                      value={filterFechaRevision}
+                      onChange={(e) => setFilterFechaRevision(e.target.value)}
+                      style={{ border: '1px solid #d1d5db', borderRadius: '4px', padding: '2px 8px', fontSize: '14px' }}
+                    />
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <button 
-                      className={`btn ${filterAvance === '' || filterAvance === 'todo' ? 'btn-primary' : 'btn-secondary'}`} 
-                      onClick={() => setFilterAvance('todo')}
-                      style={{ backgroundColor: filterAvance === '' || filterAvance === 'todo' ? '#3b82f6' : 'transparent', color: filterAvance === '' || filterAvance === 'todo' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '' || filterAvance === 'todo' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
-                    >
-                      Todos
-                    </button>
-                    <button 
-                      className={`btn ${filterAvance === '<50' ? 'btn-primary' : 'btn-secondary'}`} 
-                      onClick={() => setFilterAvance('<50')}
-                      style={{ backgroundColor: filterAvance === '<50' ? '#3b82f6' : 'transparent', color: filterAvance === '<50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '<50' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
-                    >
-                      {'<'}50%
-                    </button>
-                    <button 
-                      className={`btn ${filterAvance === '>=50' ? 'btn-primary' : 'btn-secondary'}`} 
-                      onClick={() => setFilterAvance('>=50')}
-                      style={{ backgroundColor: filterAvance === '>=50' ? '#3b82f6' : 'transparent', color: filterAvance === '>=50' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '>=50' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
-                    >
-                      {'≥'}50%
-                    </button>
-                    <button 
-                      className={`btn ${filterAvance === '100' ? 'btn-primary' : 'btn-secondary'}`} 
-                      onClick={() => setFilterAvance('100')}
-                      style={{ backgroundColor: filterAvance === '100' ? '#10b981' : 'transparent', color: filterAvance === '100' ? 'white' : '#4b5563', padding: '0.25rem 0.5rem', fontSize: '14px', border: filterAvance === '100' ? 'none' : '1px solid #d1d5db', cursor: 'pointer', borderRadius: '4px' }}
-                    >
-                      Completos 100%
-                    </button>
+
+                {/* Segunda Fila: Botones de Avance */}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button 
+                    className={`btn-filter ${filterAvance === '' || filterAvance === 'todo' ? 'active' : ''}`}
+                    onClick={() => setFilterAvance('todo')}
+                    style={filterButtonStyle(filterAvance === '' || filterAvance === 'todo')}
+                  >
+                    Todos
+                  </button>
+                  <button 
+                    className={`btn-filter ${filterAvance === '<50' ? 'active' : ''}`}
+                    onClick={() => setFilterAvance('<50')}
+                    style={filterButtonStyle(filterAvance === '<50')}
+                  >
+                    {'<'}50%
+                  </button>
+                  <button 
+                    className={`btn-filter ${filterAvance === '>=50' ? 'active' : ''}`}
+                    onClick={() => setFilterAvance('>=50')}
+                    style={filterButtonStyle(filterAvance === '>=50')}
+                  >
+                    {'≥'}50%
+                  </button>
+                  <button 
+                    className={`btn-filter ${filterAvance === '100' ? 'active' : ''}`}
+                    onClick={() => setFilterAvance('100')}
+                    style={filterButtonStyle(filterAvance === '100')}
+                  >
+                    Completos 100%
+                  </button>
                 </div>
               </div>
             </div>

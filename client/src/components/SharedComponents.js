@@ -2,31 +2,46 @@ import React from 'react';
 import '../styles/Dashboard.css';
 import { AlertCircle, CheckCircle, Circle } from 'lucide-react';
 
-export const ProgressBar = ({ percentage, size = 'md' }) => {
-  const sizeClasses = {
-    sm: 'h-2',
-    md: 'h-4',
-    lg: 'h-6'
-  };
-
+export const ProgressBar = ({ percentage, color = '#3b82f6', showText = true }) => {
   return (
-    <div className={`progress-bar-container ${sizeClasses[size]}`}>
+    <div className="progress-bar-container" style={{ height: '10px', backgroundColor: '#e5e7eb', borderRadius: '5px', overflow: 'hidden', flex: 1 }}>
       <div
         className="progress-bar-fill"
-        style={{ width: `${percentage}%` }}
+        style={{ 
+          width: `${percentage}%`, 
+          backgroundColor: color, 
+          height: '100%',
+          transition: 'width 0.3s ease'
+        }}
       />
-      <span className="progress-bar-text">{percentage}%</span>
+      {showText && <span style={{ fontSize: '10px', position: 'absolute', right: '4px', top: '-14px', fontWeight: 'bold' }}>{percentage}%</span>}
     </div>
   );
 };
 
-export const StatCard = ({ title, value, icon, color = 'blue' }) => {
+export const DualProgressBar = ({ avanceCaptura = 0, avanceVerificacion = 0 }) => {
+  return (
+    <div className="dual-progress-bar" style={{ display: 'flex', gap: '4px', width: '100%', position: 'relative', marginTop: '16px' }}>
+      <div style={{ flex: 75, display: 'flex', flexDirection: 'column' }}>
+        <small style={{ fontSize: '9px', fontWeight: 'bold', color: '#6b7280', marginBottom: '2px' }}>CAPTURA (75%)</small>
+        <ProgressBar percentage={avanceCaptura} color="#3b82f6" />
+      </div>
+      <div style={{ flex: 25, display: 'flex', flexDirection: 'column' }}>
+        <small style={{ fontSize: '9px', fontWeight: 'bold', color: '#6b7280', marginBottom: '2px' }}>VERIF (25%)</small>
+        <ProgressBar percentage={avanceVerificacion} color="#10b981" />
+      </div>
+    </div>
+  );
+};
+
+export const StatCard = ({ title, value, icon, color = 'blue', subtitle = null }) => {
   return (
     <div className={`stat-card stat-card-${color}`}>
       <div className="stat-card-icon">{icon}</div>
       <div className="stat-card-content">
         <p className="stat-card-title">{title}</p>
-        <p className="stat-card-value">{value}</p>
+        <p className="stat-card-value" style={{ marginBottom: subtitle ? '2px' : '0' }}>{value}</p>
+        {subtitle && <p style={{ fontSize: '12px', opacity: 0.8, fontWeight: 'bold' }}>{subtitle}</p>}
       </div>
     </div>
   );
@@ -68,24 +83,20 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
               <strong>Conc:</strong> {formatDate(fase.fecha_conclusión || new Date().toISOString())}
             </p>
             <div style={{ flex: 1 }}>
-              <ProgressBar percentage={100} size="sm" />
+              <DualProgressBar avanceCaptura={100} avanceVerificacion={100} />
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ flex: 1, minWidth: '150px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
-                 <small style={{ fontSize: '11px', fontWeight: 'bold', color: '#6b7280' }}>
-                   Avance: {fase.porcentaje || 0}%
-                 </small>
-                 {fase.fecha_estimada && (
-                    <small style={{ fontSize: '11px', color: '#6b7280' }}>
-                      Est: {formatDate(fase.fecha_estimada)}
-                    </small>
-                 )}
-              </div>
-              <ProgressBar percentage={fase.porcentaje || 0} size="sm" />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+             {fase.fecha_estimada && (
+                <small style={{ fontSize: '11px', color: '#6b7280', alignSelf: 'flex-end' }}>
+                  Est: {formatDate(fase.fecha_estimada)}
+                </small>
+             )}
+             <DualProgressBar 
+               avanceCaptura={fase.avance_captura || 0} 
+               avanceVerificacion={fase.avance_verificacion || 0} 
+             />
           </div>
         )}
       </div>
@@ -143,26 +154,14 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
         <p><strong>Director:</strong> {plantel.director_nombre}</p>
         {ceap && (
           <>
-            <div className="plantel-progress">
-              <small>Avance: {ceap.porcentaje_avance}%</small>
-              <div style={{ backgroundColor: '#e5e7eb', borderRadius: '4px', height: '8px', marginTop: '4px' }}>
-                <div
-                  style={{
-                    backgroundColor: (() => {
-                      const avance = ceap.porcentaje_avance;
-                      if (avance === 100) return '#10b981';
-                      if (avance >= 75) return '#3b82f6';
-                      if (avance >= 50) return '#f59e0b';
-                      if (avance >= 25) return '#ef6444';
-                      return '#9ca3af';
-                    })(),
-                    width: `${ceap.porcentaje_avance}%`,
-                    height: '100%',
-                    borderRadius: '4px',
-                    transition: 'width 0.3s ease'
-                  }}
-                />
-              </div>
+            <div className="plantel-progress" style={{ marginTop: '1rem', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#374151' }}>Avance Global: {ceap.porcentaje_avance || 0}%</span>
+               </div>
+               <DualProgressBar 
+                 avanceCaptura={ceap.avance_captura || 0} 
+                 avanceVerificacion={ceap.avance_verificacion || 0} 
+               />
             </div>
             {(ceap.ultima_actualizacion_usuario || ceap.ultima_actualizacion_admin || ceap.ultima_actualizacion_documento) && (
               <div className="plantel-timestamps" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>

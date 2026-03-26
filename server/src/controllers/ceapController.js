@@ -116,19 +116,21 @@ exports.getDashboardData = async (req, res) => {
     let totalFases = totalPlanteles * 5; // 5 fases por plantel
     let totalFasesCompletadas = 0;
     let planteleCompletados = 0;
+    let sumaCaptura = 0;
+    let sumaVerificacion = 0;
 
     ceaps.forEach(ceap => {
-      const fasesComp = parseInt(ceap.fases_completadas) || 0;
-      totalFasesCompletadas += fasesComp;
-
-      // Contar planteles completados (100% de avance)
-      const porcentaje = parseInt(ceap.porcentaje_avance) || 0;
-      if (porcentaje >= 100) {
+      totalFasesCompletadas += (parseInt(ceap.fases_completadas) || 0);
+      if (parseInt(ceap.porcentaje_avance) >= 100) {
         planteleCompletados++;
       }
+      sumaCaptura += (parseInt(ceap.avance_captura) || 0);
+      sumaVerificacion += (parseInt(ceap.avance_verificacion) || 0);
     });
 
     const porcentajeGlobal = totalFases > 0 ? Math.round((totalFasesCompletadas / totalFases) * 100) : 0;
+    const avanceCapturaGlobal = ceaps.length > 0 ? Math.round(sumaCaptura / ceaps.length) : 0;
+    const avanceVerificacionGlobal = ceaps.length > 0 ? Math.round(sumaVerificacion / ceaps.length) : 0;
 
     res.json({
       ceaps,
@@ -137,7 +139,9 @@ exports.getDashboardData = async (req, res) => {
         planteleCompletados: planteleCompletados,
         totalFases,
         totalFasesCompletadas,
-        porcentajeGlobal
+        porcentajeGlobal,
+        avanceCapturaGlobal,
+        avanceVerificacionGlobal
       }
     });
   } catch (error) {
