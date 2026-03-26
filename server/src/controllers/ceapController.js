@@ -93,6 +93,17 @@ exports.addObservacion = async (req, res) => {
   }
 };
 
+exports.deleteObservacion = async (req, res) => {
+  try {
+    const { observacionId } = req.params;
+    await CEaPFaseModel.deleteObservacion(observacionId);
+    res.json({ message: 'Observación eliminada' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar observación' });
+  }
+};
+
 exports.getDashboardData = async (req, res) => {
   try {
     const ceaps = await CEaPModel.getAllWithProgress();

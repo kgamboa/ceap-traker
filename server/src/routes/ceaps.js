@@ -13,6 +13,7 @@ router.get('/fases/:ceapFaseId/documentos', ceapController.getDocumentos);
 router.put('/fases/:ceapFaseId/documentos/:documentoId', ceapController.updateDocumento);
 router.get('/fases/:ceapFaseId/observaciones', ceapController.getObservaciones);
 router.post('/fases/:ceapFaseId/observaciones', ceapController.addObservacion);
+router.delete('/observaciones/:observacionId', ceapController.deleteObservacion);
 
 router.delete('/:ceapId', ceapController.deleteCEAP);
 

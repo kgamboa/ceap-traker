@@ -246,6 +246,14 @@ class CEaPFaseModel {
     );
     return result.rows[0];
   }
+
+  static async deleteObservacion(observacionId) {
+    const result = await pool.query(
+      'DELETE FROM ceap_fase_observaciones WHERE id = $1 RETURNING *',
+      [observacionId]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = CEaPFaseModel;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ceapService } from '../services/api';
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
 
 export const ObservacionesChat = ({ faseId }) => {
@@ -17,12 +17,6 @@ export const ObservacionesChat = ({ faseId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faseId]);
 
-  useEffect(() => {
-    if (isExpanded) {
-      scrollToBottom();
-    }
-  }, [mensajes, isExpanded]);
-
   const fetchObservaciones = async () => {
     try {
       setLoading(true);
@@ -38,6 +32,12 @@ export const ObservacionesChat = ({ faseId }) => {
   const scrollToBottom = () => {
     mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (isExpanded) {
+      scrollToBottom();
+    }
+  }, [mensajes, isExpanded]);
 
   const enviarMensaje = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -56,6 +56,16 @@ export const ObservacionesChat = ({ faseId }) => {
       fetchObservaciones();
     } catch (e) {
       console.error('Error al enviar mensaje', e);
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    if (!window.confirm('¿Eliminar esta observación?')) return;
+    try {
+      await ceapService.deleteObservacion(id);
+      fetchObservaciones();
+    } catch (e) {
+      console.error('Error al eliminar mensaje', e);
     }
   };
 
@@ -130,10 +140,21 @@ export const ObservacionesChat = ({ faseId }) => {
                     borderColor: isMine ? (isAdmin ? '#bfdbfe' : '#bbf7d0') : '#e5e7eb',
                     borderRadius: '6px',
                     padding: '6px 10px',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    position: 'relative'
                   }}>
-                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '2px', fontWeight: '500' }}>
-                      {msg.usuario_nombre}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '500' }}>
+                        {msg.usuario_nombre}
+                      </div>
+                      {isAdmin && (
+                        <button 
+                          onClick={() => handleEliminar(msg.id)}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#9ca3af' }}
+                        >
+                          <Trash2 size={10} />
+                        </button>
+                      )}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#111827', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                       {msg.mensaje}
