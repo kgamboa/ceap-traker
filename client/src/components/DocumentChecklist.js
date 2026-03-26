@@ -120,19 +120,14 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
                   disabled={!doc.capturado_plantel}
                 />
               ) : (
-                // Lógica de Plantel
-                <>
-                  {isVerified ? (
-                    <CheckCircle size={18} color="#10b981" />
-                  ) : (
-                    <input 
-                      type="checkbox" 
-                      checked={doc.capturado_plantel} 
-                      onChange={() => handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
-                      style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                    />
-                  )}
-                </>
+                /* Lógica de Plantel */
+                <input 
+                  type="checkbox" 
+                  checked={doc.capturado_plantel} 
+                  onChange={() => handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
+                  disabled={isVerified}
+                  style={{ cursor: isVerified ? 'not-allowed' : 'pointer', width: '18px', height: '18px' }}
+                />
               )}
               
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -153,6 +148,17 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
                   )}
                 </div>
               </div>
+
+              {/* Icono de Estatus de Verificación a la derecha para Plantel solamente */}
+              {!isAdmin && (
+                <div style={{ marginLeft: 'auto', paddingLeft: '8px' }}>
+                  {isVerified ? (
+                    <CheckCircle size={22} color="#10b981" />
+                  ) : isObserved ? (
+                    <AlertCircle size={22} color="#f59e0b" />
+                  ) : null}
+                </div>
+              )}
             </li>
           );
         })}

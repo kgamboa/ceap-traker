@@ -69,18 +69,28 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
           {fase.estado === 'completado' ? 'Completado' : `${fase.porcentaje || 0}%`}
         </span>
       </div>
-      <div className="fase-info-compact">
-        {fase.estado === 'completado' && fase.fecha_conclusión && (
-          <p className="fase-date-compact">
-            <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
-          </p>
-        )}
-        {/* Mostrar Est solo si no está concluido */}
-        {fase.estado !== 'completado' && fase.fecha_estimada && (
-          <p className="fase-date-compact">
-            <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
-          </p>
-        )}
+      <div className="fase-info-compact" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {fase.estado === 'completado' && fase.fecha_conclusión && (
+            <p className="fase-date-compact" style={{ margin: 0 }}>
+              <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
+            </p>
+          )}
+          {fase.estado !== 'completado' && fase.fecha_estimada && (
+            <p className="fase-date-compact" style={{ margin: 0 }}>
+              <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
+            </p>
+          )}
+        </div>
+
+        <div style={{ flex: 1, minWidth: '150px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
+             <small style={{ fontSize: '11px', fontWeight: 'bold', color: '#4b5563' }}>
+               Avance: {fase.porcentaje || 0}%
+             </small>
+          </div>
+          <ProgressBar percentage={fase.porcentaje || 0} size="sm" />
+        </div>
       </div>
       {isAdmin && (
         <div className="fase-evidence-section" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
