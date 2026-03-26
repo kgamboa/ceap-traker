@@ -4,7 +4,7 @@ import { Send, Trash2 } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
 
 export const ObservacionesChat = ({ faseId }) => {
-  const { isAdmin, user } = useRole();
+  const { isAdmin, username } = useRole();
   const [mensajes, setMensajes] = useState([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const mensajesEndRef = useRef(null);
@@ -44,7 +44,7 @@ export const ObservacionesChat = ({ faseId }) => {
     if (!nuevoMensaje.trim()) return;
 
     try {
-      const nombreUsuario = user?.username || (isAdmin ? 'Admin' : 'Plantel');
+      const nombreUsuario = username || (isAdmin ? 'Admin' : 'Plantel');
 
       await ceapService.addObservacion(faseId, {
         usuario_nombre: nombreUsuario,

@@ -16,6 +16,7 @@ export const useRole = () => {
   return {
     role: getRole(),
     setRole,
-    isAdmin: isAdmin()
+    isAdmin: isAdmin(),
+    username: localStorage.getItem('username')
   };
 };

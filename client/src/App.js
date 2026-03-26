@@ -22,6 +22,7 @@ function App() {
     e.preventDefault();
     const isAdminUser = ['admin', 'karlo', 'joaquin'].includes(username.toLowerCase());
     if (isAdminUser && password === 'admin') {
+      localStorage.setItem('username', username);
       handleRoleChange('admin');
     } else {
       setErrorText('Credenciales incorrectas');
@@ -29,8 +30,11 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('username');
     handleRoleChange('user');
   };
+
+  const currentUsername = localStorage.getItem('username') || 'Administrador';
 
   return (
     <Router>
@@ -45,7 +49,7 @@ function App() {
               <div className="role-selector">
                 {role === 'admin' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ color: 'white' }}>Administrador</span>
+                    <span style={{ color: 'white', textTransform: 'capitalize' }}>{currentUsername}</span>
                     <button className="btn btn-secondary" onClick={handleLogout} style={{ padding: '0.25rem 0.5rem', fontSize: '14px' }}>
                       Cerrar sesión
                     </button>
