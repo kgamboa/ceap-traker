@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
+import DocumentChecklist from '../components/DocumentChecklist';
+import ObservacionesChat from '../components/ObservacionesChat';
 import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
@@ -27,8 +29,6 @@ export const PlanteleDetail = () => {
   const [fases, setFases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editingFaseId, setEditingFaseId] = useState(null);
-  const [editData, setEditData] = useState({});
   const [editingPlantel, setEditingPlantel] = useState(false);
   const [plantelData, setPlantelData] = useState(null);
   const [showNewCeapModal, setShowNewCeapModal] = useState(false);
@@ -90,80 +90,14 @@ export const PlanteleDetail = () => {
     }
   }, [selectedCeap, fetchFases]);
 
-  const handleEditFase = (faseId, currentData) => {
-    setEditingFaseId(faseId);
-    setEditData({
-      ...currentData,
-      fecha_estimada: formatDateForInput(currentData.fecha_estimada),
-      fecha_conclusión: formatDateForInput(currentData.fecha_conclusión),
-      ceapId: selectedCeap.id
-    });
-  };
-
-  const handleEvidenceToggle = (faseId, isChecked) => {
-    // Save evidence status without closing editor
-    const faseData = {
-      ...editData,
-      evidencias_verificadas: isChecked,
-      ceapId: selectedCeap.id,
-      isAdmin
-    };
-
-    ceapService.updateFase(faseId, faseData).then(() => {
-      // Refresh the fases data
-      fetchFases(selectedCeap.id);
-      // Refresh CEAP data to update porcentajes
-      ceapService.getByPlantel(plantel.id).then(response => {
-        setCeaps(response.data);
-        const updatedCeap = response.data.find(c => c.id === selectedCeap.id);
-        if (updatedCeap) {
-          setSelectedCeap(updatedCeap);
-        }
-      });
-    }).catch(err => {
-      console.error(err);
-      alert('Error al guardar las evidencias');
-    });
-  };
-
-  const handleSaveFase = async () => {
-    // Validar fechas según el estado
-    if (editData.estado === 'completado') {
-      if (!editData.fecha_conclusión) {
-        alert('La fecha de conclusión es obligatoria cuando el estado es completado');
-        return;
-      }
-    } else if (editData.estado === 'no_iniciado' || editData.estado === 'en_progreso') {
-      if (!editData.fecha_estimada) {
-        alert('La fecha estimada es obligatoria cuando el estado es no iniciado o en progreso');
-        return;
-      }
-    }
-
-    try {
-      setSaving(true);
-      // Si estado es completado, establecer completado como true
-      const dataToSave = {
-        ...editData,
-        completado: editData.estado === 'completado',
-        isAdmin
-      };
-      await ceapService.updateFase(editingFaseId, dataToSave);
-      setEditingFaseId(null);
-      fetchFases(selectedCeap.id);
-      // Recargar CEAPs para actualizar avances
-      const response = await ceapService.getByPlantel(plantel.id);
-      setCeaps(response.data);
-      // Actualizar selectedCeap con los nuevos datos
-      const updatedCeap = response.data.find(c => c.id === selectedCeap.id);
-      if (updatedCeap) {
-        setSelectedCeap(updatedCeap);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error al guardar los cambios');
-    } finally {
-      setSaving(false);
+  const handleDocumentChange = async () => {
+    // Cuando hay cambios guardados en un documento, podemos actualizar todo para refrescar avances
+    await fetchFases(selectedCeap.id);
+    const response = await ceapService.getByPlantel(plantel.id);
+    setCeaps(response.data);
+    const updatedCeap = response.data.find(c => c.id === selectedCeap.id);
+    if (updatedCeap) {
+      setSelectedCeap(updatedCeap);
     }
   };
 
@@ -455,103 +389,21 @@ export const PlanteleDetail = () => {
 
                 <div className="fases-container">
                   {fases.map(fase => (
-                    <div key={fase.id} className="fase-item">
-                      {editingFaseId === fase.id ? (
-                        <div className="fase-editor">
-                          <h4>{fase.fase_nombre}</h4>
-
-                          <div className="form-group">
-                            <label>Estado:</label>
-                            <select
-                              value={editData.estado || ''}
-                              onChange={(e) => setEditData({ ...editData, estado: e.target.value })}
-                            >
-                              <option value="no_iniciado">No Iniciado</option>
-                              <option value="en_progreso">En Progreso</option>
-                              <option value="completado">Completado</option>
-                            </select>
-                          </div>
-
-                          <div className="form-row">
-                            {editData.estado === 'completado' ? (
-                              <div className="form-group">
-                                <label>Fecha de Conclusión: <span className="required">*</span></label>
-                                <input
-                                  type="date"
-                                  value={editData.fecha_conclusión || ''}
-                                  onChange={(e) => setEditData({ ...editData, fecha_conclusión: e.target.value })}
-                                  required
-                                />
-                              </div>
-                            ) : (
-                              <div className="form-group">
-                                <label>Fecha Estimada: <span className="required">*</span></label>
-                                <input
-                                  type="date"
-                                  value={editData.fecha_estimada || ''}
-                                  onChange={(e) => setEditData({ ...editData, fecha_estimada: e.target.value })}
-                                  required
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="form-group">
-                            <label>Observaciones:</label>
-                            <textarea
-                              value={editData.observaciones || ''}
-                              onChange={(e) => setEditData({ ...editData, observaciones: e.target.value })}
-                              rows="3"
-                            />
-                          </div>
-
-                          {isAdmin && (
-                            <div className="form-group">
-                              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={editData.evidencias_verificadas || false}
-                                  onChange={(e) => setEditData({ ...editData, evidencias_verificadas: e.target.checked })}
-                                  style={{ cursor: 'pointer' }}
-                                />
-                                <span style={{ fontWeight: '500' }}>
-                                  Evidencias Verificadas
-                                </span>
-                              </label>
-                            </div>
-                          )}
-
-                          <div className="form-actions">
-                            <button
-                              className="btn btn-success"
-                              onClick={handleSaveFase}
-                              disabled={saving}
-                            >
-                              <Save size={18} /> Guardar
-                            </button>
-                            <button
-                              className="btn btn-secondary"
-                              onClick={() => setEditingFaseId(null)}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <FaseStatus
-                            fase={fase}
-                            isAdmin={isAdmin}
-                            onEvidenceToggle={(checked) => handleEvidenceToggle(fase.id, checked)}
-                          />
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => handleEditFase(fase.id, fase)}
-                          >
-                            Editar
-                          </button>
-                        </>
-                      )}
+                    <div key={fase.id} className="fase-item" style={{ padding: '16px' }}>
+                      <FaseStatus
+                        fase={fase}
+                        isAdmin={isAdmin}
+                      />
+                      <DocumentChecklist 
+                        faseId={fase.id} 
+                        ceapId={selectedCeap.id} 
+                        isAdmin={isAdmin} 
+                        onChange={handleDocumentChange}
+                      />
+                      <ObservacionesChat
+                        faseId={fase.id}
+                        isAdmin={isAdmin}
+                      />
                     </div>
                   ))}
                 </div>

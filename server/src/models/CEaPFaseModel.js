@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const fasesCatalog = require('./fasesCatalog');
 
 class CEaPFaseModel {
   static async getByCodeAP(ceapId) {
@@ -107,17 +108,88 @@ class CEaPFaseModel {
   }
 
   static async initializeFasesForCEAP(ceapId) {
-    // Obtener todas las fases
-    const fasesResult = await pool.query('SELECT id FROM fases ORDER BY numero_orden');
+    // Obtener todas las fases (solo deben quedar 5 después de la migración)
+    const fasesResult = await pool.query('SELECT id, numero_orden FROM fases ORDER BY numero_orden');
 
     for (const fase of fasesResult.rows) {
-      await pool.query(
+      const faseInsertResult = await pool.query(
         `INSERT INTO ceap_fases (ceap_id, fase_id, estado)
          VALUES ($1, $2, 'no_iniciado')
-         ON CONFLICT (ceap_id, fase_id) DO NOTHING`,
+         ON CONFLICT (ceap_id, fase_id) DO UPDATE SET estado = EXCLUDED.estado
+         RETURNING id`,
         [ceapId, fase.id]
       );
+      
+      const rfId = faseInsertResult.rows[0].id;
+      const docs = fasesCatalog[fase.numero_orden] || [];
+      
+      for (const doc of docs) {
+         await pool.query(
+           `INSERT INTO ceap_fase_documentos (ceap_fase_id, documento_nombre, documento_clave)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (ceap_fase_id, documento_clave) DO NOTHING`,
+           [rfId, doc.nombre, doc.clave]
+         );
+      }
     }
+  }
+
+  static async getDocumentos(ceapFaseId) {
+    const result = await pool.query(
+      `SELECT * FROM ceap_fase_documentos WHERE ceap_fase_id = $1 ORDER BY id ASC`,
+      [ceapFaseId]
+    );
+    return result.rows;
+  }
+
+  static async updateDocumento(ceapFaseId, documentoClave, datos) {
+    const { capturado_plantel, estado_verificacion, isAdmin } = datos;
+    
+    // Si viene del plantel y cambia a capturado
+    if (!isAdmin && capturado_plantel !== undefined) {
+      const result = await pool.query(
+        `UPDATE ceap_fase_documentos 
+         SET capturado_plantel = $1, 
+             fecha_captura = CASE WHEN $1 = true THEN CURRENT_TIMESTAMP ELSE null END,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE ceap_fase_id = $2 AND documento_clave = $3
+         RETURNING *`,
+        [capturado_plantel, ceapFaseId, documentoClave]
+      );
+      return result.rows[0];
+    }
+    
+    // Si viene del admin y cambia el estado
+    if (isAdmin && estado_verificacion !== undefined) {
+      const result = await pool.query(
+        `UPDATE ceap_fase_documentos 
+         SET estado_verificacion = $1, 
+             fecha_verificacion = CASE WHEN $1 = 'verificado' THEN CURRENT_TIMESTAMP ELSE null END,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE ceap_fase_id = $2 AND documento_clave = $3
+         RETURNING *`,
+        [estado_verificacion, ceapFaseId, documentoClave]
+      );
+      return result.rows[0];
+    }
+  }
+
+  static async getObservaciones(ceapFaseId) {
+    const result = await pool.query(
+      `SELECT * FROM ceap_fase_observaciones WHERE ceap_fase_id = $1 ORDER BY created_at ASC`,
+      [ceapFaseId]
+    );
+    return result.rows;
+  }
+
+  static async addObservacion(ceapFaseId, usuario_nombre, es_admin, mensaje) {
+    const result = await pool.query(
+      `INSERT INTO ceap_fase_observaciones (ceap_fase_id, usuario_nombre, es_admin, mensaje)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [ceapFaseId, usuario_nombre, es_admin, mensaje]
+    );
+    return result.rows[0];
   }
 }
 

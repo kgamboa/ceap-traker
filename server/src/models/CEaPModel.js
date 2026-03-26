@@ -89,22 +89,32 @@ class CEaPModel {
   }
 
   static async updateProgress(ceapId) {
-    // Calcular porcentaje de avance basado en el estado de verificación de evidencias
-    // Verificado = 100%, Completado = 75%, En Progreso = 50%
     const progressResult = await pool.query(
-      `SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN evidencias_verificadas = true THEN 100
-                 WHEN completado = true THEN 75
-                 WHEN estado = 'en_progreso' THEN 50
-                 ELSE 0 END) as total_puntos
-       FROM ceap_fases
-       WHERE ceap_id = $1`,
+      `WITH doc_stats AS (
+         SELECT
+           cf.id as fase_id,
+           COUNT(d.id) as total_docs,
+           SUM(CASE WHEN d.capturado_plantel = true THEN 1 ELSE 0 END) as docs_capturados,
+           SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1 ELSE 0 END) as docs_verificados
+         FROM ceap_fases cf
+         LEFT JOIN ceap_fase_documentos d ON cf.id = d.ceap_fase_id
+         WHERE cf.ceap_id = $1
+         GROUP BY cf.id
+       )
+       SELECT
+         SUM(
+           CASE WHEN total_docs > 0 THEN
+             ((docs_capturados::float / total_docs) * 75) +
+             ((docs_verificados::float / total_docs) * 25)
+           ELSE 0 END
+         ) as suma_porcentajes,
+         COUNT(*) as total_fases
+       FROM doc_stats`,
       [ceapId]
     );
 
-    const { total, total_puntos } = progressResult.rows[0];
-    const percentage = total > 0 ? Math.round((total_puntos / (total * 100)) * 100) : 0;
+    const { suma_porcentajes, total_fases } = progressResult.rows[0];
+    const percentage = total_fases > 0 ? Math.round(suma_porcentajes / total_fases) : 0;
 
     const result = await pool.query(
       `UPDATE ceaps 

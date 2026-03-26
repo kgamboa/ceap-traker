@@ -25,7 +25,12 @@ export const ceapService = {
   getFases: (ceapId) => api.get(`/ceaps/${ceapId}/fases`),
   create: (datos) => api.post('/ceaps', datos),
   updateFase: (ceapFaseId, datos) => api.put(`/ceaps/fases/${ceapFaseId}`, datos),
-  delete: (ceapId) => api.delete(`/ceaps/${ceapId}`)
+  delete: (ceapId) => api.delete(`/ceaps/${ceapId}`),
+  
+  getDocumentos: (faseId) => api.get(`/ceaps/fases/${faseId}/documentos`),
+  updateDocumento: (faseId, clave, datos) => api.put(`/ceaps/fases/${faseId}/documentos/${clave}`, datos),
+  getObservaciones: (faseId) => api.get(`/ceaps/fases/${faseId}/observaciones`),
+  addObservacion: (faseId, datos) => api.post(`/ceaps/fases/${faseId}/observaciones`, datos)
 };
 
 // Servicios de Exportación

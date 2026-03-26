@@ -40,6 +40,59 @@ exports.updateCEAPFase = async (req, res) => {
   }
 };
 
+exports.getDocumentos = async (req, res) => {
+  try {
+    const { ceapFaseId } = req.params;
+    const documentos = await CEaPFaseModel.getDocumentos(ceapFaseId);
+    res.json(documentos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener documentos' });
+  }
+};
+
+exports.updateDocumento = async (req, res) => {
+  try {
+    const { ceapFaseId, documentoClave } = req.params;
+    const { ceapId } = req.body; // necesitamos ceapId para updateProgress
+
+    const documento = await CEaPFaseModel.updateDocumento(ceapFaseId, documentoClave, req.body);
+
+    if (ceapId) {
+       await CEaPModel.updateProgress(ceapId);
+    }
+
+    res.json(documento);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar documento' });
+  }
+};
+
+exports.getObservaciones = async (req, res) => {
+  try {
+    const { ceapFaseId } = req.params;
+    const observaciones = await CEaPFaseModel.getObservaciones(ceapFaseId);
+    res.json(observaciones);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener observaciones' });
+  }
+};
+
+exports.addObservacion = async (req, res) => {
+  try {
+    const { ceapFaseId } = req.params;
+    const { usuario_nombre, es_admin, mensaje } = req.body;
+    
+    const observacion = await CEaPFaseModel.addObservacion(ceapFaseId, usuario_nombre, es_admin, mensaje);
+    res.status(201).json(observacion);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al agregar observación' });
+  }
+};
+
 exports.getDashboardData = async (req, res) => {
   try {
     const ceaps = await CEaPModel.getAllWithProgress();
@@ -49,7 +102,7 @@ exports.getDashboardData = async (req, res) => {
     const todosPlanteles = await PlanteleModel.getAll();
     const totalPlanteles = todosPlanteles.length;
 
-    let totalFases = totalPlanteles * 7; // 7 fases por plantel
+    let totalFases = totalPlanteles * 5; // 5 fases por plantel
     let totalFasesCompletadas = 0;
     let planteleCompletados = 0;
 
