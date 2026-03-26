@@ -1,25 +1,30 @@
 const fasesCatalog = {
-  // Asignamos los documentos esperados por cada fase (usando numero_orden como key provisional)
   1: [ // Convocatoria
-    { clave: 'convocatoria_1', nombre: 'Primera Convocatoria' },
-    { clave: 'convocatoria_2', nombre: 'Segunda Convocatoria' },
-    { clave: 'convocatoria_3', nombre: 'Tercera Convocatoria' },
+    { clave: 'convocatoria_padres', nombre: 'Convocatoria Padres de Familia' },
+    { clave: 'convocatoria_trabajadores', nombre: 'Convocatoria Trabajadores' },
+    { clave: 'convocatoria_alumnos', nombre: 'Convocatoria Alumnos' },
   ],
   2: [ // Asambleas
-    { clave: 'acta_padres', nombre: 'Acta Padres de Familia' },
-    { clave: 'acta_trabajadores', nombre: 'Acta Trabajadores' },
-    { clave: 'acta_estudiantes', nombre: 'Acta Estudiantes' },
+    { clave: 'acta_padres', nombre: 'Acta de Asamblea Padres de Familia' },
+    { clave: 'lista_padres', nombre: 'Lista de Asistencia Padres de Familia' },
+    { clave: 'acta_trabajadores', nombre: 'Acta de Asamblea Trabajadores' },
+    { clave: 'lista_trabajadores', nombre: 'Lista de Asistencia Trabajadores' },
+    { clave: 'acta_alumnos', nombre: 'Acta de Asamblea Alumnos' },
+    { clave: 'lista_alumnos', nombre: 'Lista de Asistencia Alumnos' },
   ],
   3: [ // Notario Público
-    { clave: 'acta_constitutiva_notariada', nombre: 'Acta Constitutiva Notariada' },
+    { clave: 'acta_constitutiva', nombre: 'Acta Constitutiva Notariada' },
+    { clave: 'poder_notarial', nombre: 'Poder Notarial del Representante Legal' },
   ],
   4: [ // SAT
-    { clave: 'rfc_ceap', nombre: 'RFC de la CEAP' },
-    { clave: 'e_firma', nombre: 'Acuse de e.firma' },
+    { clave: 'constancia_fiscal', nombre: 'Constancia de Situación Fiscal (RFC)' },
+    { clave: 'e_firma', nombre: 'Acuse de Generación de e.firma' },
+    { clave: 'opinion_cumplimiento', nombre: 'Opinión de Cumplimiento de Obligaciones Fiscales' },
   ],
   5: [ // Cuenta Bancaria
-    { clave: 'contrato_cuenta', nombre: 'Contrato de Cuenta Bancaria' },
-    { clave: 'estado_cuenta_inicial', nombre: 'Estado de Cuenta Inicial' },
+    { clave: 'contrato_cuenta', nombre: 'Contrato de Apertura de Cuenta' },
+    { clave: 'caratula_cuenta', nombre: 'Carátula del Estado de Cuenta' },
+    { clave: 'registro_firmas', nombre: 'Registro de Firmas Autorizadas' },
   ]
 };
 
