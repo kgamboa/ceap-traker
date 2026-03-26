@@ -30,6 +30,11 @@ async function runMigrations() {
         console.log('✓ Tabla de migraciones verificada');
 
         // 2. Leer archivos de migración
+        if (!fs.existsSync(migrationsDir)) {
+            console.log('⚠ Directorio de migraciones no encontrado, omitiendo.');
+            return;
+        }
+
         const migrationFiles = fs
             .readdirSync(migrationsDir)
             .filter(file => file.endsWith('.sql'))
