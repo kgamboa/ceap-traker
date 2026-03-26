@@ -167,60 +167,66 @@ class CEaPFaseModel {
     const { capturado_plantel, estado_verificacion, isAdmin } = datos;
     let resultDoc;
 
-    if (!isAdmin && capturado_plantel !== undefined) {
-      const result = await pool.query(
-        `UPDATE ceap_fase_documentos 
-         SET capturado_plantel = $1, 
-             fecha_captura = CASE WHEN $1 = true THEN CURRENT_TIMESTAMP ELSE null END,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE ceap_fase_id = $2 AND documento_id = $3
-         RETURNING *`,
-        [capturado_plantel, ceapFaseId, documentoId]
-      );
-      resultDoc = result.rows[0];
-    } else if (isAdmin && estado_verificacion !== undefined) {
-      const result = await pool.query(
-        `UPDATE ceap_fase_documentos 
-         SET estado_verificacion = $1, 
-             fecha_verificacion = CASE WHEN $1 = 'verificado' THEN CURRENT_TIMESTAMP ELSE null END,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE ceap_fase_id = $2 AND documento_id = $3
-         RETURNING *`,
-        [estado_verificacion, ceapFaseId, documentoId]
-      );
-      resultDoc = result.rows[0];
-    }
-
-    // Now recalculate the phase status
-    if (resultDoc) {
-      const docsResult = await pool.query(`SELECT * FROM ceap_fase_documentos WHERE ceap_fase_id = $1`, [ceapFaseId]);
-      const docs = docsResult.rows;
-      const total = docs.length;
-      const captured = docs.filter(d => d.capturado_plantel).length;
-      const verified = docs.filter(d => d.estado_verificacion === 'verificado').length;
-
-      let newState = 'no_iniciado';
-      let isCompleted = false;
-
-      if (captured === total && verified === total && total > 0) {
-        newState = 'completado';
-        isCompleted = true;
-      } else if (captured > 0 || verified > 0) {
-        newState = 'en_progreso';
+    try {
+      if (!isAdmin && capturado_plantel !== undefined) {
+        const result = await pool.query(
+          `UPDATE ceap_fase_documentos 
+           SET capturado_plantel = $1, 
+               fecha_captura = CASE WHEN $1 = true THEN CURRENT_TIMESTAMP ELSE null END,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
+           RETURNING *`,
+          [capturado_plantel, ceapFaseId, Number(documentoId)]
+        );
+        resultDoc = result.rows[0];
+      } else if (isAdmin && estado_verificacion !== undefined) {
+        const result = await pool.query(
+          `UPDATE ceap_fase_documentos 
+           SET estado_verificacion = $1, 
+               fecha_verificacion = CASE WHEN $1 = 'verificado' THEN CURRENT_TIMESTAMP ELSE null END,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
+           RETURNING *`,
+          [estado_verificacion, ceapFaseId, Number(documentoId)]
+        );
+        resultDoc = result.rows[0];
       }
 
-      await pool.query(
-        `UPDATE ceap_fases 
-         SET estado = $1, 
-             completado = $2,
-             fecha_conclusión = CASE WHEN $1 = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = $3`,
-        [newState, isCompleted, ceapFaseId]
-      );
-    }
+      // Now recalculate the phase status
+      if (resultDoc) {
+        const docsResult = await pool.query(`SELECT * FROM ceap_fase_documentos WHERE ceap_fase_id = $1::uuid`, [ceapFaseId]);
+        const docs = docsResult.rows;
+        const total = docs.length;
+        const captured = docs.filter(d => !!d.capturado_plantel).length;
+        const verified = docs.filter(d => d.estado_verificacion === 'verificado').length;
 
-    return resultDoc;
+        let newState = 'no_iniciado';
+        let isCompleted = false;
+
+        if (total > 0) {
+          if (captured === total && verified === total) {
+            newState = 'completado';
+            isCompleted = true;
+          } else if (captured > 0 || verified > 0) {
+            newState = 'en_progreso';
+          }
+        }
+
+        await pool.query(
+          `UPDATE ceap_fases 
+           SET estado = $1, 
+               completado = $2,
+               fecha_conclusión = CASE WHEN $1 = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $3::uuid`,
+          [newState, isCompleted, ceapFaseId]
+        );
+      }
+      return resultDoc;
+    } catch (err) {
+      console.error('Error in updateDocumento:', err);
+      throw err;
+    }
   }
 
   static async getObservaciones(ceapFaseId) {

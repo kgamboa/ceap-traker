@@ -20,7 +20,8 @@ function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === 'Admin' && password === 'AdminRoot') {
+    const isAdminUser = ['admin', 'karlo', 'joaquin'].includes(username.toLowerCase());
+    if (isAdminUser && password === 'admin') {
       handleRoleChange('admin');
     } else {
       setErrorText('Credenciales incorrectas');

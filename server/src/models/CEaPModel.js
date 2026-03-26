@@ -89,38 +89,41 @@ class CEaPModel {
   }
 
   static async updateProgress(ceapId) {
+    if (!ceapId) return 0;
+    
+    // Calculate total progress: 75% for documentation, 25% for verification
     const progressResult = await pool.query(
       `WITH doc_stats AS (
          SELECT
            cf.id as fase_id,
            COUNT(d.id) as total_docs,
-           SUM(CASE WHEN d.capturado_plantel = true THEN 1 ELSE 0 END) as docs_capturados,
-           SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1 ELSE 0 END) as docs_verificados
+           COALESCE(SUM(CASE WHEN d.capturado_plantel = true THEN 1 ELSE 0 END), 0) as docs_capturados,
+           COALESCE(SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1 ELSE 0 END), 0) as docs_verificados
          FROM ceap_fases cf
          LEFT JOIN ceap_fase_documentos d ON cf.id = d.ceap_fase_id
-         WHERE cf.ceap_id = $1
+         WHERE cf.ceap_id = $1::uuid
          GROUP BY cf.id
        )
        SELECT
-         SUM(
+         COALESCE(SUM(
            CASE WHEN total_docs > 0 THEN
              ((docs_capturados::float / total_docs) * 75) +
              ((docs_verificados::float / total_docs) * 25)
            ELSE 0 END
-         ) as suma_porcentajes,
+         ), 0) as suma_porcentajes,
          COUNT(*) as total_fases
        FROM doc_stats`,
       [ceapId]
     );
 
     const { suma_porcentajes, total_fases } = progressResult.rows[0];
-    const percentage = total_fases > 0 ? Math.round(suma_porcentajes / total_fases) : 0;
+    const percentage = Number(total_fases) > 0 ? Math.round(Number(suma_porcentajes) / Number(total_fases)) : 0;
 
     const result = await pool.query(
       `UPDATE ceaps 
        SET porcentaje_avance = $1, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2
-       RETURNING *`,
+       WHERE id = $2::uuid
+       RETURNING porcentaje_avance`,
       [percentage, ceapId]
     );
     return result.rows[0];
@@ -129,13 +132,13 @@ class CEaPModel {
   static async delete(ceapId) {
     // Primero eliminar las fases asociadas
     await pool.query(
-      'DELETE FROM ceap_fases WHERE ceap_id = $1',
+      'DELETE FROM ceap_fases WHERE ceap_id = $1::uuid',
       [ceapId]
     );
 
     // Luego eliminar el CEAP
     const result = await pool.query(
-      'DELETE FROM ceaps WHERE id = $1 RETURNING *',
+      'DELETE FROM ceaps WHERE id = $1::uuid RETURNING *',
       [ceapId]
     );
     return result.rows[0];
