@@ -33,30 +33,21 @@ export const StatCard = ({ title, value, icon, color = 'blue' }) => {
 };
 
 export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) => {
-  const getStatusColor = (estado) => {
-    switch (estado) {
-      case 'completado': return '#10b981';
-      case 'en_progreso': return '#f59e0b';
-      case 'no_iniciado': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
-
-
-  // eslint-disable-next-line no-unused-vars
-  const getEvidenceStatus = (evidenciasVerificadas) => {
-    if (evidenciasVerificadas) return 'Verificado';
-    return 'No Verificado';
+  const getStatusColor = (porcentaje) => {
+    if (porcentaje >= 100) return '#10b981';
+    if (porcentaje > 0) return '#f59e0b';
+    return '#9ca3af';
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
-    // Extraer año, mes, día directamente del string para evitar problemas de zona horaria
-    const dateOnly = dateString.split('T')[0]; // Obtener solo YYYY-MM-DD
+    const dateOnly = dateString.split('T')[0];
     const [year, month, day] = dateOnly.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
   };
+
+  const isCompleted = fase.porcentaje >= 100;
 
   return (
     <div className="fase-status">
@@ -64,35 +55,40 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
         <h4>{fase.fase_nombre}</h4>
         <span
           className="status-badge"
-          style={{ backgroundColor: getStatusColor(fase.estado) }}
+          style={{ backgroundColor: getStatusColor(fase.porcentaje) }}
         >
-          {fase.estado === 'completado' ? 'Completado' : `${fase.porcentaje || 0}%`}
+          {isCompleted ? 'Completado' : `${fase.porcentaje || 0}%`}
         </span>
       </div>
-      <div className="fase-info-compact" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {fase.estado === 'completado' && fase.fecha_conclusión && (
-            <p className="fase-date-compact" style={{ margin: 0 }}>
-              <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
-            </p>
-          )}
-          {fase.estado !== 'completado' && fase.fecha_estimada && (
-            <p className="fase-date-compact" style={{ margin: 0 }}>
-              <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
-            </p>
-          )}
-        </div>
 
-        <div style={{ flex: 1, minWidth: '150px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
-             <small style={{ fontSize: '11px', fontWeight: 'bold', color: '#4b5563' }}>
-               Avance: {fase.porcentaje || 0}%
-             </small>
+      <div className="fase-info-compact">
+        {isCompleted ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <p className="fase-date-compact" style={{ margin: 0, color: '#10b981', fontWeight: 'bold' }}>
+              <strong>Conc:</strong> {formatDate(fase.fecha_conclusión || new Date().toISOString())}
+            </p>
+            <div style={{ flex: 1 }}>
+              <ProgressBar percentage={100} size="sm" />
+            </div>
           </div>
-          <ProgressBar percentage={fase.porcentaje || 0} size="sm" />
-        </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: 1, minWidth: '150px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4px' }}>
+                 <small style={{ fontSize: '11px', fontWeight: 'bold', color: '#6b7280' }}>
+                   Avance: {fase.porcentaje || 0}%
+                 </small>
+                 {fase.fecha_estimada && (
+                    <small style={{ fontSize: '11px', color: '#6b7280' }}>
+                      Est: {formatDate(fase.fecha_estimada)}
+                    </small>
+                 )}
+              </div>
+              <ProgressBar percentage={fase.porcentaje || 0} size="sm" />
+            </div>
+          </div>
+        )}
       </div>
-
 
       {fase.observaciones && (
         <p className="fase-notes-compact">{fase.observaciones}</p>
@@ -187,8 +183,8 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
         {ceap && ceap.fases && ceap.fases.length > 0 && (
           <ul className="plantel-fases-list" style={{ marginTop: '0.75rem', paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {ceap.fases.map((f) => {
-              const completed = f.completado || f.estado === 'completado';
-              const inProgress = f.estado === 'en_progreso';
+              const completed = f.porcentaje >= 100;
+              const inProgress = f.porcentaje > 0 && f.porcentaje < 100;
               return (
                 <li key={f.fase_id || f.id || f.fase_nombre} className={`fase-list-item ${completed ? 'completed' : inProgress ? 'in-progress' : 'not-started'}`} style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
                   {completed ? (
