@@ -124,7 +124,7 @@ class CEaPModel {
 
     const result = await pool.query(
       `UPDATE ceaps 
-       SET porcentaje_avance = $1, updated_at = CURRENT_TIMESTAMP
+       SET porcentaje_avance = $1::integer, updated_at = CURRENT_TIMESTAMP
        WHERE id = $2::uuid
        RETURNING porcentaje_avance`,
       [percentage, ceapId]

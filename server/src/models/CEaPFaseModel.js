@@ -172,10 +172,10 @@ class CEaPFaseModel {
         // Admin can update both
         const result = await pool.query(
           `UPDATE ceap_fase_documentos 
-           SET capturado_plantel = COALESCE($1, capturado_plantel),
-               estado_verificacion = COALESCE($2, estado_verificacion),
-               fecha_captura = CASE WHEN $1 = true AND (fecha_captura IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_captura END,
-               fecha_verificacion = CASE WHEN $2 = 'verificado' AND (fecha_verificacion IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_verificacion END,
+           SET capturado_plantel = COALESCE($1::boolean, capturado_plantel),
+               estado_verificacion = COALESCE($2::text, estado_verificacion),
+               fecha_captura = CASE WHEN $1::boolean = true AND (fecha_captura IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_captura END,
+               fecha_verificacion = CASE WHEN $2::text = 'verificado' AND (fecha_verificacion IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_verificacion END,
                updated_at = CURRENT_TIMESTAMP
            WHERE ceap_fase_id = $3::uuid AND documento_id = $4::integer
            RETURNING *`,
@@ -186,8 +186,8 @@ class CEaPFaseModel {
         // Plantel can only update capture
         const result = await pool.query(
           `UPDATE ceap_fase_documentos 
-           SET capturado_plantel = $1, 
-               fecha_captura = CASE WHEN $1 = true THEN CURRENT_TIMESTAMP ELSE null END,
+           SET capturado_plantel = $1::boolean, 
+               fecha_captura = CASE WHEN $1::boolean = true THEN CURRENT_TIMESTAMP ELSE null END,
                updated_at = CURRENT_TIMESTAMP
            WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
            RETURNING *`,
@@ -218,9 +218,9 @@ class CEaPFaseModel {
 
         await pool.query(
           `UPDATE ceap_fases 
-           SET estado = $1, 
+           SET estado = $1::text, 
                completado = $2,
-               fecha_conclusión = CASE WHEN $1 = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
+               fecha_conclusión = CASE WHEN $1::text = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
                updated_at = CURRENT_TIMESTAMP
            WHERE id = $3::uuid`,
           [newState, isCompleted, ceapFaseId]
