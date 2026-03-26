@@ -23,7 +23,15 @@ class CEaPFaseModel {
         cf.ultima_actualizacion_admin,
         cf.ultima_actualizacion_documento,
         cf.created_at,
-        cf.updated_at
+        cf.updated_at,
+        COALESCE(
+          (SELECT ROUND(
+            ((COUNT(NULLIF(d.capturado_plantel, false))::float / NULLIF(COUNT(*), 0)) * 75) +
+            ((COUNT(NULLIF(d.estado_verificacion = 'verificado', false))::float / NULLIF(COUNT(*), 0)) * 25)
+          )
+          FROM ceap_fase_documentos d 
+          WHERE d.ceap_fase_id = cf.id), 0
+        ) as porcentaje
        FROM ceap_fases cf
        JOIN fases f ON cf.fase_id = f.id
        WHERE cf.ceap_id = $1
@@ -144,8 +152,8 @@ class CEaPFaseModel {
 
   static async updateDocumento(ceapFaseId, documentoClave, datos) {
     const { capturado_plantel, estado_verificacion, isAdmin } = datos;
-    
-    // Si viene del plantel y cambia a capturado
+    let resultDoc;
+
     if (!isAdmin && capturado_plantel !== undefined) {
       const result = await pool.query(
         `UPDATE ceap_fase_documentos 
@@ -156,11 +164,8 @@ class CEaPFaseModel {
          RETURNING *`,
         [capturado_plantel, ceapFaseId, documentoClave]
       );
-      return result.rows[0];
-    }
-    
-    // Si viene del admin y cambia el estado
-    if (isAdmin && estado_verificacion !== undefined) {
+      resultDoc = result.rows[0];
+    } else if (isAdmin && estado_verificacion !== undefined) {
       const result = await pool.query(
         `UPDATE ceap_fase_documentos 
          SET estado_verificacion = $1, 
@@ -170,8 +175,39 @@ class CEaPFaseModel {
          RETURNING *`,
         [estado_verificacion, ceapFaseId, documentoClave]
       );
-      return result.rows[0];
+      resultDoc = result.rows[0];
     }
+
+    // Now recalculate the phase status
+    if (resultDoc) {
+      const docsResult = await pool.query(`SELECT * FROM ceap_fase_documentos WHERE ceap_fase_id = $1`, [ceapFaseId]);
+      const docs = docsResult.rows;
+      const total = docs.length;
+      const captured = docs.filter(d => d.capturado_plantel).length;
+      const verified = docs.filter(d => d.estado_verificacion === 'verificado').length;
+
+      let newState = 'no_iniciado';
+      let isCompleted = false;
+
+      if (captured === total && verified === total && total > 0) {
+        newState = 'completado';
+        isCompleted = true;
+      } else if (captured > 0 || verified > 0) {
+        newState = 'en_progreso';
+      }
+
+      await pool.query(
+        `UPDATE ceap_fases 
+         SET estado = $1, 
+             completado = $2,
+             fecha_conclusión = CASE WHEN $1 = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3`,
+        [newState, isCompleted, ceapFaseId]
+      );
+    }
+
+    return resultDoc;
   }
 
   static async getObservaciones(ceapFaseId) {

@@ -74,17 +74,17 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
           className="status-badge"
           style={{ backgroundColor: getStatusColor(fase.estado) }}
         >
-          {getStatusLabel(fase.estado)}
+          {fase.estado === 'completado' ? 'Completado' : `${fase.porcentaje || 0}%`}
         </span>
       </div>
       <div className="fase-info-compact">
-        {fase.fecha_conclusión && (
+        {fase.estado === 'completado' && fase.fecha_conclusión && (
           <p className="fase-date-compact">
             <strong>Conc:</strong> {formatDate(fase.fecha_conclusión)}
           </p>
         )}
         {/* Mostrar Est solo si no está concluido */}
-        {fase.fecha_estimada && !fase.fecha_conclusión && (
+        {fase.estado !== 'completado' && fase.fecha_estimada && (
           <p className="fase-date-compact">
             <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
           </p>

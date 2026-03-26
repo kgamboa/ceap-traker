@@ -24,7 +24,7 @@ const fasesCatalog = {
     { clave: 'registro_publico', nombre: 'Registro Público' },
   ],
   4: [
-    { clave: 'constancia_fiscal', nombre: 'Constancia de Situación Fiscal (RFC)' },
+    { clave: 'acuse_socios', nombre: 'Acuse cambio de Socios/Accionistas' },
     { clave: 'e_firma', nombre: 'Acuse de Generación de e.firma' },
     { clave: 'opinion_cumplimiento', nombre: 'Autorizar Resultado Público de la Opinión de Cumplimiento Fiscal' },
   ],
