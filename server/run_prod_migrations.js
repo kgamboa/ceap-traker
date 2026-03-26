@@ -23,20 +23,26 @@ async function runProductionMigrations() {
     `);
 
     // Files to run in order
-    const migrationFile = '002_refactor_fases_and_docs.sql';
-    const filePath = path.join(__dirname, 'migrations', migrationFile);
+    const migrationFiles = [
+      '002_refactor_fases_and_docs.sql',
+      '003_documentos_catalog.sql'
+    ];
     
-    // Check if already executed
-    const alreadyRun = await pool.query('SELECT * FROM schema_migrations WHERE name = $1', [migrationFile]);
-    
-    if (alreadyRun.rows.length > 0) {
-      console.log(`Migration ${migrationFile} already executed. Skipping.`);
-    } else {
-      const sql = fs.readFileSync(filePath, 'utf8');
-      console.log(`Executing ${migrationFile}...`);
-      await pool.query(sql);
-      await pool.query('INSERT INTO schema_migrations (name) VALUES ($1)', [migrationFile]);
-      console.log('✓ Migration executed successfully.');
+    for (const migrationFile of migrationFiles) {
+        const filePath = path.join(__dirname, 'migrations', migrationFile);
+        
+        // Check if already executed
+        const alreadyRun = await pool.query('SELECT * FROM schema_migrations WHERE name = $1', [migrationFile]);
+        
+        if (alreadyRun.rows.length > 0) {
+            console.log(`Migration ${migrationFile} already executed. Skipping.`);
+        } else {
+            const sql = fs.readFileSync(filePath, 'utf8');
+            console.log(`Executing ${migrationFile}...`);
+            await pool.query(sql);
+            await pool.query('INSERT INTO schema_migrations (name) VALUES ($1)', [migrationFile]);
+            console.log(`✓ Migration ${migrationFile} executed successfully.`);
+        }
     }
 
     // Insert Admin Users (Joaquin and Karlo) if they don't exist

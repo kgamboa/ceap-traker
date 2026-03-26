@@ -61,11 +61,11 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handlePlantelToggle = async (docClave, currentValue) => {
+  const handlePlantelToggle = async (docId, currentValue) => {
     if (isAdmin) return;
     const newValue = !currentValue;
     try {
-      await ceapService.updateDocumento(faseId, docClave, {
+      await ceapService.updateDocumento(faseId, docId, {
         capturado_plantel: newValue,
         isAdmin: false,
         ceapId: ceapId
@@ -77,10 +77,10 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handleAdminToggle = async (docClave, nextState) => {
+  const handleAdminToggle = async (docId, nextState) => {
     if (!isAdmin) return;
     try {
-      await ceapService.updateDocumento(faseId, docClave, {
+      await ceapService.updateDocumento(faseId, docId, {
         estado_verificacion: nextState,
         isAdmin: true,
         ceapId: ceapId
@@ -116,7 +116,7 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
                 // Lógica de Admin
                 <TriStateCheckbox 
                   value={doc.estado_verificacion} 
-                  onChange={(val) => handleAdminToggle(doc.documento_clave, val)}
+                  onChange={(val) => handleAdminToggle(doc.documento_id, val)}
                   disabled={!doc.capturado_plantel}
                 />
               ) : (
@@ -128,7 +128,7 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
                     <input 
                       type="checkbox" 
                       checked={doc.capturado_plantel} 
-                      onChange={() => handlePlantelToggle(doc.documento_clave, doc.capturado_plantel)}
+                      onChange={() => handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
                       style={{ cursor: 'pointer', width: '18px', height: '18px' }}
                     />
                   )}

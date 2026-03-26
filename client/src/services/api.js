@@ -28,7 +28,7 @@ export const ceapService = {
   delete: (ceapId) => api.delete(`/ceaps/${ceapId}`),
   
   getDocumentos: (faseId) => api.get(`/ceaps/fases/${faseId}/documentos`),
-  updateDocumento: (faseId, clave, datos) => api.put(`/ceaps/fases/${faseId}/documentos/${clave}`, datos),
+  updateDocumento: (faseId, docId, datos) => api.put(`/ceaps/fases/${faseId}/documentos/${docId}`, datos),
   getObservaciones: (faseId) => api.get(`/ceaps/fases/${faseId}/observaciones`),
   addObservacion: (faseId, datos) => api.post(`/ceaps/fases/${faseId}/observaciones`, datos)
 };

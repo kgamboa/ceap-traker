@@ -129,28 +129,41 @@ class CEaPFaseModel {
       );
       
       const rfId = faseInsertResult.rows[0].id;
-      const docs = fasesCatalog[fase.numero_orden] || [];
       
-      for (const doc of docs) {
-         await pool.query(
-           `INSERT INTO ceap_fase_documentos (ceap_fase_id, documento_nombre, documento_clave)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (ceap_fase_id, documento_clave) DO NOTHING`,
-           [rfId, doc.nombre, doc.clave]
-         );
-      }
+      // Inyectar documentos desde el catálogo central
+      await pool.query(
+        `INSERT INTO ceap_fase_documentos (ceap_fase_id, documento_id)
+         SELECT $1, id FROM ceap_documentos_catalog WHERE fase_numero_orden = $2
+         ON CONFLICT (ceap_fase_id, documento_id) DO NOTHING`,
+        [rfId, fase.numero_orden]
+      );
     }
   }
 
   static async getDocumentos(ceapFaseId) {
     const result = await pool.query(
-      `SELECT * FROM ceap_fase_documentos WHERE ceap_fase_id = $1 ORDER BY id ASC`,
+      `SELECT 
+        d.id,
+        d.ceap_fase_id,
+        d.documento_id,
+        c.nombre as documento_nombre,
+        c.clave as documento_clave,
+        d.capturado_plantel,
+        d.fecha_captura,
+        d.estado_verificacion,
+        d.fecha_verificacion,
+        d.created_at,
+        d.updated_at
+       FROM ceap_fase_documentos d
+       JOIN ceap_documentos_catalog c ON d.documento_id = c.id
+       WHERE d.ceap_fase_id = $1 
+       ORDER BY c.numero_orden_doc ASC`,
       [ceapFaseId]
     );
     return result.rows;
   }
 
-  static async updateDocumento(ceapFaseId, documentoClave, datos) {
+  static async updateDocumento(ceapFaseId, documentoId, datos) {
     const { capturado_plantel, estado_verificacion, isAdmin } = datos;
     let resultDoc;
 
@@ -160,9 +173,9 @@ class CEaPFaseModel {
          SET capturado_plantel = $1, 
              fecha_captura = CASE WHEN $1 = true THEN CURRENT_TIMESTAMP ELSE null END,
              updated_at = CURRENT_TIMESTAMP
-         WHERE ceap_fase_id = $2 AND documento_clave = $3
+         WHERE ceap_fase_id = $2 AND documento_id = $3
          RETURNING *`,
-        [capturado_plantel, ceapFaseId, documentoClave]
+        [capturado_plantel, ceapFaseId, documentoId]
       );
       resultDoc = result.rows[0];
     } else if (isAdmin && estado_verificacion !== undefined) {
@@ -171,9 +184,9 @@ class CEaPFaseModel {
          SET estado_verificacion = $1, 
              fecha_verificacion = CASE WHEN $1 = 'verificado' THEN CURRENT_TIMESTAMP ELSE null END,
              updated_at = CURRENT_TIMESTAMP
-         WHERE ceap_fase_id = $2 AND documento_clave = $3
+         WHERE ceap_fase_id = $2 AND documento_id = $3
          RETURNING *`,
-        [estado_verificacion, ceapFaseId, documentoClave]
+        [estado_verificacion, ceapFaseId, documentoId]
       );
       resultDoc = result.rows[0];
     }

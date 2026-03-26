@@ -53,10 +53,10 @@ exports.getDocumentos = async (req, res) => {
 
 exports.updateDocumento = async (req, res) => {
   try {
-    const { ceapFaseId, documentoClave } = req.params;
+    const { ceapFaseId, documentoId } = req.params;
     const { ceapId } = req.body; // necesitamos ceapId para updateProgress
 
-    const documento = await CEaPFaseModel.updateDocumento(ceapFaseId, documentoClave, req.body);
+    const documento = await CEaPFaseModel.updateDocumento(ceapFaseId, documentoId, req.body);
 
     if (ceapId) {
        await CEaPModel.updateProgress(ceapId);

@@ -42,14 +42,6 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
     }
   };
 
-  const getStatusLabel = (estado) => {
-    switch (estado) {
-      case 'completado': return 'Completado';
-      case 'en_progreso': return 'En Progreso';
-      case 'no_iniciado': return 'No Iniciado';
-      default: return estado;
-    }
-  };
 
   // eslint-disable-next-line no-unused-vars
   const getEvidenceStatus = (evidenciasVerificadas) => {
