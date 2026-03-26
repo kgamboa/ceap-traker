@@ -92,26 +92,8 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
           <ProgressBar percentage={fase.porcentaje || 0} size="sm" />
         </div>
       </div>
-      {isAdmin && (
-        <div className="fase-evidence-section" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={fase.evidencias_verificadas || false}
-              onChange={(e) => onEvidenceToggle && onEvidenceToggle(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
-              Evidencias Verificadas
-            </span>
-          </label>
-          {fase.fecha_verificacion && (
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', marginBottom: 0 }}>
-              Verificado: {formatDate(fase.fecha_verificacion)}
-            </p>
-          )}
-        </div>
-      )}
+
+
       {fase.observaciones && (
         <p className="fase-notes-compact">{fase.observaciones}</p>
       )}

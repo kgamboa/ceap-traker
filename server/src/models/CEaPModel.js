@@ -98,7 +98,10 @@ class CEaPModel {
            cf.id as fase_id,
            COUNT(d.id) as total_docs,
            COALESCE(SUM(CASE WHEN d.capturado_plantel = true THEN 1 ELSE 0 END), 0) as docs_capturados,
-           COALESCE(SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1 ELSE 0 END), 0) as docs_verificados
+           COALESCE(SUM(CASE 
+             WHEN d.estado_verificacion = 'verificado' THEN 1.0 
+             WHEN d.estado_verificacion = 'observado' THEN 0.5 
+             ELSE 0 END), 0) as docs_verificados_weighted
          FROM ceap_fases cf
          LEFT JOIN ceap_fase_documentos d ON cf.id = d.ceap_fase_id
          WHERE cf.ceap_id = $1::uuid
@@ -108,7 +111,7 @@ class CEaPModel {
          COALESCE(SUM(
            CASE WHEN total_docs > 0 THEN
              ((docs_capturados::float / total_docs) * 75) +
-             ((docs_verificados::float / total_docs) * 25)
+             ((docs_verificados_weighted::float / total_docs) * 25)
            ELSE 0 END
          ), 0) as suma_porcentajes,
          COUNT(*) as total_fases

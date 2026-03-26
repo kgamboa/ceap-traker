@@ -27,7 +27,7 @@ class CEaPFaseModel {
         COALESCE(
           (SELECT ROUND(
             ((COUNT(NULLIF(d.capturado_plantel, false))::float / NULLIF(COUNT(*), 0)) * 75) +
-            ((COUNT(NULLIF(d.estado_verificacion = 'verificado', false))::float / NULLIF(COUNT(*), 0)) * 25)
+            ((SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 25)
           )
           FROM ceap_fase_documentos d 
           WHERE d.ceap_fase_id = cf.id), 0
@@ -168,7 +168,22 @@ class CEaPFaseModel {
     let resultDoc;
 
     try {
-      if (!isAdmin && capturado_plantel !== undefined) {
+      if (isAdmin) {
+        // Admin can update both
+        const result = await pool.query(
+          `UPDATE ceap_fase_documentos 
+           SET capturado_plantel = COALESCE($1, capturado_plantel),
+               estado_verificacion = COALESCE($2, estado_verificacion),
+               fecha_captura = CASE WHEN $1 = true AND (fecha_captura IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_captura END,
+               fecha_verificacion = CASE WHEN $2 = 'verificado' AND (fecha_verificacion IS NULL) THEN CURRENT_TIMESTAMP ELSE fecha_verificacion END,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE ceap_fase_id = $3::uuid AND documento_id = $4::integer
+           RETURNING *`,
+          [capturado_plantel, estado_verificacion, ceapFaseId, Number(documentoId)]
+        );
+        resultDoc = result.rows[0];
+      } else {
+        // Plantel can only update capture
         const result = await pool.query(
           `UPDATE ceap_fase_documentos 
            SET capturado_plantel = $1, 
@@ -177,17 +192,6 @@ class CEaPFaseModel {
            WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
            RETURNING *`,
           [capturado_plantel, ceapFaseId, Number(documentoId)]
-        );
-        resultDoc = result.rows[0];
-      } else if (isAdmin && estado_verificacion !== undefined) {
-        const result = await pool.query(
-          `UPDATE ceap_fase_documentos 
-           SET estado_verificacion = $1, 
-               fecha_verificacion = CASE WHEN $1 = 'verificado' THEN CURRENT_TIMESTAMP ELSE null END,
-               updated_at = CURRENT_TIMESTAMP
-           WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
-           RETURNING *`,
-          [estado_verificacion, ceapFaseId, Number(documentoId)]
         );
         resultDoc = result.rows[0];
       }

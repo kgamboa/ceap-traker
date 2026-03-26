@@ -1,42 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle } from 'lucide-react';
 
 const TriStateCheckbox = ({ value, onChange, disabled }) => {
-  const checkboxRef = useRef(null);
-
-  useEffect(() => {
-    if (checkboxRef.current) {
-      if (value === 'observado') {
-        checkboxRef.current.indeterminate = true;
-        checkboxRef.current.checked = false;
-      } else if (value === 'verificado') {
-        checkboxRef.current.indeterminate = false;
-        checkboxRef.current.checked = true;
-      } else {
-        checkboxRef.current.indeterminate = false;
-        checkboxRef.current.checked = false;
-      }
+  const getIcon = () => {
+    switch (value) {
+      case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+      case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
+      default: return <Circle size={22} color="#d1d5db" />;
     }
-  }, [value]);
+  };
 
-  const handleChange = () => {
+  const handleClick = () => {
+    if (disabled) return;
     let nextValue;
-    if (value === 'pendiente') nextValue = 'verificado';
-    else if (value === 'verificado') nextValue = 'observado';
-    else nextValue = 'pendiente';
-    
+    if (value === 'verificado') nextValue = 'observado';
+    else if (value === 'observado') nextValue = 'pendiente';
+    else nextValue = 'verificado';
     onChange(nextValue);
   };
 
   return (
-    <input
-      type="checkbox"
-      ref={checkboxRef}
-      onChange={handleChange}
-      disabled={disabled}
-      style={{ cursor: disabled ? 'not-allowed' : 'pointer', width: '18px', height: '18px' }}
-    />
+    <div 
+      onClick={handleClick}
+      title={disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}`}
+      style={{ 
+        cursor: disabled ? 'not-allowed' : 'pointer', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        opacity: disabled ? 0.5 : 1,
+        transition: 'transform 0.1s ease'
+      }}
+      className="tristate-toggle"
+    >
+      {getIcon()}
+    </div>
   );
 };
 
@@ -77,11 +76,11 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handleAdminToggle = async (docId, nextState) => {
+  const handleAdminToggle = async (docId, datos) => {
     if (!isAdmin) return;
     try {
       await ceapService.updateDocumento(faseId, docId, {
-        estado_verificacion: nextState,
+        ...datos,
         isAdmin: true,
         ceapId: ceapId
       });
@@ -113,12 +112,22 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
           return (
             <li key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
               {isAdmin ? (
-                // Lógica de Admin
-                <TriStateCheckbox 
-                  value={doc.estado_verificacion} 
-                  onChange={(val) => handleAdminToggle(doc.documento_id, val)}
-                  disabled={!doc.capturado_plantel}
-                />
+                /* Lógica de Admin: Dos controles */
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={doc.capturado_plantel} 
+                    onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
+                    title="Captura del Plantel"
+                    style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                  />
+                  <TriStateCheckbox 
+                    value={doc.estado_verificacion} 
+                    onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
+                    disabled={!doc.capturado_plantel}
+                    title="Estado de Verificación"
+                  />
+                </div>
               ) : (
                 /* Lógica de Plantel */
                 <input 
