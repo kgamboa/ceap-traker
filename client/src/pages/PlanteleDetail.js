@@ -8,16 +8,6 @@ import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from
 import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 
-// Función helper para convertir fecha de servidor a formato YYYY-MM-DD local
-const formatDateForInput = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  // Usar getFullYear, getMonth, getDate para obtener la fecha en la zona horaria local
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 export const PlanteleDetail = () => {
   const { plantelCodigo } = useParams();
