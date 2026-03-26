@@ -49,5 +49,5 @@ INSERT INTO ceap_documentos_catalog (fase_numero_orden, clave, nombre, numero_or
 ALTER TABLE ceap_fase_documentos DROP COLUMN documento_nombre;
 ALTER TABLE ceap_fase_documentos DROP COLUMN documento_clave;
 ALTER TABLE ceap_fase_documentos ALTER COLUMN documento_id SET NOT NULL;
-ALTER TABLE ceap_fase_documentos DROP CONSTRAINT ceap_fase_documentos_ceap_fase_id_documento_clave_key;
+ALTER TABLE ceap_fase_documentos DROP CONSTRAINT IF EXISTS ceap_fase_documentos_ceap_fase_id_documento_clave_key;
 ALTER TABLE ceap_fase_documentos ADD UNIQUE (ceap_fase_id, documento_id);
