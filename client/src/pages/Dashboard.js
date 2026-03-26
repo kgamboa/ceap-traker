@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X } from 'lucide-react';
+import { Download, BarChart3, AlertCircle, Plus, X, Search } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -613,7 +613,7 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div className="search-box" style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
                     <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-                      <BarChart3 size={18} />
+                      <Search size={18} />
                     </div>
                     <input
                       type="text"
