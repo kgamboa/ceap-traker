@@ -134,12 +134,9 @@ export const FaseStatus = ({ fase, isAdmin = false, onUpdate = null }) => {
               className="fase-notes-compact" 
               style={{ 
                 marginTop: '4px',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
+                whiteSpace: 'nowrap',
                 overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxHeight: '2.6em' // Backup for clamp
+                textOverflow: 'ellipsis'
               }}
             >
               {fase.observaciones}
