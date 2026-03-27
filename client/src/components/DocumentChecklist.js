@@ -39,7 +39,7 @@ const MultiStateToggle = ({ value, onChange, disabled }) => {
   );
 };
 
-export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
+const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -246,3 +246,5 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     </div>
   );
 };
+
+export default DocumentChecklist;
