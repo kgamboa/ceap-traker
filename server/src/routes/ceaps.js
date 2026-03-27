@@ -8,6 +8,7 @@ router.post('/', ceapController.createCEAP);
 router.get('/plantel/:plantelId', ceapController.getCEAPByPlantel);
 router.get('/:ceapId/fases', ceapController.getCEAPFases);
 router.put('/fases/:ceapFaseId', ceapController.updateCEAPFase);
+router.get('/:ceapId/summary', ceapController.getCEAPSummary);
 
 router.get('/fases/:ceapFaseId/documentos', ceapController.getDocumentos);
 router.put('/fases/:ceapFaseId/documentos/:documentoId', ceapController.updateDocumento);

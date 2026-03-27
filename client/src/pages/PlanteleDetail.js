@@ -4,7 +4,7 @@ import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import DocumentChecklist from '../components/DocumentChecklist';
 import ObservacionesChat from '../components/ObservacionesChat';
-import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
+import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2, Copy, Check } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 
@@ -22,6 +22,10 @@ export const PlanteleDetail = () => {
   const [editingPlantel, setEditingPlantel] = useState(false);
   const [plantelData, setPlantelData] = useState(null);
   const [showNewCeapModal, setShowNewCeapModal] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [summaryText, setSummaryText] = useState('');
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
   const [newCeapData, setNewCeapData] = useState({
     ciclo_inicio: new Date().getFullYear(),
     ciclo_fin: new Date().getFullYear() + 1
@@ -105,6 +109,27 @@ export const PlanteleDetail = () => {
       console.error(err);
       alert('Error al exportar');
     }
+  };
+
+  const handleGenerateSummary = async () => {
+    try {
+      setLoadingSummary(true);
+      setShowSummaryModal(true);
+      setCopiedSummary(false);
+      const response = await ceapService.getSummary(selectedCeap.id);
+      setSummaryText(response.data.summary);
+    } catch (err) {
+      console.error(err);
+      setSummaryText('Error al generar el resumen. Por favor intente nuevamente.');
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  const handleCopySummary = () => {
+    navigator.clipboard.writeText(summaryText);
+    setCopiedSummary(true);
+    setTimeout(() => setCopiedSummary(false), 2000);
   };
 
   const handleSavePlantel = async () => {
@@ -372,9 +397,14 @@ export const PlanteleDetail = () => {
               <div className="fases-section">
                 <div className="fases-header">
                   <h2>Fases de Implementación</h2>
-                  <button className="btn btn-primary" onClick={handleExportCeapExcel}>
-                    <Download size={18} /> Exportar
-                  </button>
+                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-secondary" onClick={handleGenerateSummary} disabled={loadingSummary}>
+                      {loadingSummary ? 'Generando...' : 'Resumen IA'}
+                    </button>
+                    <button className="btn btn-primary" onClick={handleExportCeapExcel}>
+                      <Download size={18} /> Exportar
+                    </button>
+                  </div>
                 </div>
 
                 <div className="fases-container">
@@ -462,6 +492,54 @@ export const PlanteleDetail = () => {
                 disabled={saving}
               >
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Resumen IA */}
+      {showSummaryModal && (
+        <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h2>Resumen Ejecutivo (IA)</h2>
+              <button
+                className="btn-close"
+                onClick={() => setShowSummaryModal(false)}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ minHeight: '150px' }}>
+              {loadingSummary ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <p>Generando resumen con Gemini...</p>
+                </div>
+              ) : (
+                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#374151' }}>
+                  {summaryText}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {!loadingSummary && summaryText && (
+                <button
+                  className="btn btn-primary"
+                  onClick={handleCopySummary}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  {copiedSummary ? <Check size={18} /> : <Copy size={18} />}
+                  {copiedSummary ? 'Copiado!' : 'Copiar Texto'}
+                </button>
+              )}
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowSummaryModal(false)}
+              >
+                Cerrar
               </button>
             </div>
           </div>

@@ -12,10 +12,10 @@ class ExportService {
   }
 
   static generateDetailedCSV(fases) {
-    let csv = 'Fase,Orden,Estado,Fecha Conclusión,Fecha Estimada,Completado,Observaciones\n';
+    let csv = 'Fase,Orden,Estado,% Avance,Captura (%),Verificación (%),Fecha Conclusión,Fecha Estimada,Observaciones\n';
 
     fases.forEach(fase => {
-      csv += `"${fase.fase_nombre}",${fase.numero_orden},"${fase.estado}","${fase.fecha_conclusión || ''}","${fase.fecha_estimada || ''}",${fase.completado ? 'Sí' : 'No'},"${(fase.observaciones || '').replace(/"/g, '""')}"\n`;
+      csv += `"${fase.fase_nombre}",${fase.numero_orden},"${fase.estado}",${fase.porcentaje || 0},${fase.avance_captura || 0},${fase.avance_verificacion || 0},"${fase.fecha_conclusión || ''}","${fase.fecha_estimada || ''}","${(fase.observaciones || '').replace(/"/g, '""')}"\n`;
     });
 
     return csv;
@@ -90,9 +90,11 @@ class ExportService {
         'Fase': fase.fase_nombre,
         'Orden': fase.numero_orden,
         'Estado': fase.estado,
+        'Avance (%)': fase.porcentaje || 0,
+        'Captura (%)': fase.avance_captura || 0,
+        'Verificación (%)': fase.avance_verificacion || 0,
         'Fecha Conclusión': fase.fecha_conclusión || '',
         'Fecha Estimada': fase.fecha_estimada || '',
-        'Completado': fase.completado ? 'Sí' : 'No',
         'Observaciones': fase.observaciones || ''
       }))
     );

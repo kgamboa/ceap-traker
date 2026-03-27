@@ -184,3 +184,30 @@ exports.deleteCEAP = async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar CEAP' });
   }
 };
+
+exports.getCEAPSummary = async (req, res) => {
+  try {
+    const { ceapId } = req.params;
+    
+    // Obtener datos consolidados del CEAP y avance
+    const ceapsWithProgress = await CEaPModel.getAllWithProgress();
+    const ceap = ceapsWithProgress.find(c => c.id == ceapId);
+    
+    if (!ceap) {
+      return res.status(404).json({ error: 'CEAP no encontrado' });
+    }
+
+    const PlanteleModel = require('../models/PlanteleModel');
+    const plantel = await PlanteleModel.getById(ceap.plantel_id);
+
+    const fases = await CEaPFaseModel.getByCodeAP(ceapId);
+
+    const GeminiService = require('../services/geminiService');
+    const summary = await GeminiService.generateSummary(plantel, ceap, fases);
+
+    res.json({ summary });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al generar resumen ejecutivo' });
+  }
+};
