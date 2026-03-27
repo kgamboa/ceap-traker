@@ -1,3 +1,4 @@
+import React from 'react';
 import { AlertCircle, CheckCircle, Circle, ChevronDown, ChevronUp, Save, Edit2 } from 'lucide-react';
 import { ceapService } from '../services/api';
 

@@ -136,41 +136,13 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handleBulkUpdate = async (status) => {
-    if (!isAdmin) return;
-    try {
-      const promises = documentos.map(doc => 
-        ceapService.updateDocumento(faseId, doc.documento_id, {
-          estado_verificacion: status,
-          isAdmin: true,
-          ceapId: ceapId,
-          capturado_plantel: status !== 'pendiente'
-        })
-      );
-      await Promise.all(promises);
-      fetchDocumentos();
-      if (onChange) onChange();
-    } catch (e) {
-      console.error('Error en actualización masiva', e);
-    }
-  };
-
   const handleKeyDown = (e, docId) => {
     if (!isAdmin) return;
     const key = e.key.toLowerCase();
     const statusMap = { '1': 'verificado', '2': 'no_aplica', '3': 'observado', '4': 'pendiente' };
 
     if (statusMap[key]) {
-      if (window.lastKeyPressed === 'a') {
-         handleBulkUpdate(statusMap[key]);
-         window.lastKeyPressed = '';
-      } else {
-         handleAdminToggle(docId, { estado_verificacion: statusMap[key] });
-      }
-    }
-    if (key === 'a') {
-      window.lastKeyPressed = 'a';
-      setTimeout(() => { if(window.lastKeyPressed === 'a') window.lastKeyPressed = ''; }, 2000);
+      handleAdminToggle(docId, { estado_verificacion: statusMap[key] });
     }
   };
 
@@ -250,7 +222,6 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     <div className="document-checklist" style={{ marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h5 style={{ fontSize: '0.9rem', margin: 0, color: '#374151', fontWeight: 'bold' }}>Documentos Requeridos</h5>
-        {isAdmin && <small style={{ fontSize: '10px', color: '#9ca3af' }}>Tip: A + 1-4 para cambios masivos</small>}
       </div>
 
       {grouped.type === 'matrix' ? (
