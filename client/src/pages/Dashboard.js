@@ -541,7 +541,7 @@ const Dashboard = () => {
                         data: planteles.map(p => {
                           const ceap = ceapMap[p.id];
                           if (!ceap) return 0;
-                          return ( (ceap.avance_captura || 0) * 0.75 ).toFixed(1);
+                          return ((ceap.avance_captura || 0) * 0.75).toFixed(1);
                         }),
                         backgroundColor: '#3b82f6',
                         borderRadius: 4,
@@ -552,7 +552,7 @@ const Dashboard = () => {
                         data: planteles.map(p => {
                           const ceap = ceapMap[p.id];
                           if (!ceap) return 0;
-                          return ( (ceap.avance_verificacion || 0) * 0.25 ).toFixed(1);
+                          return ((ceap.avance_verificacion || 0) * 0.25).toFixed(1);
                         }),
                         backgroundColor: '#10b981',
                         borderRadius: 4,
@@ -572,17 +572,20 @@ const Dashboard = () => {
                         intersect: false,
                         callbacks: {
                           label: function(context) {
-                            const val = parseFloat(context.parsed.x).toFixed(1);
-                            return `${context.dataset.label}: ${val}%`;
+                            const plantId = planteles[context.dataIndex].id;
+                            const ceap = ceapMap[plantId];
+                            const realVal = context.datasetIndex === 0 ? ceap?.avance_captura : ceap?.avance_verificacion;
+                            const weighted = context.parsed.x;
+                            return `${context.datasetIndex === 0 ? 'Captura' : 'Verific'}: ${realVal}% (Ponderado: ${weighted}%)`;
                           },
                           footer: (items) => {
                             const total = items.reduce((a, b) => a + parseFloat(b.parsed.x), 0);
-                            return `Avance Total: ${total.toFixed(1)}%`;
+                            return `AVANCE GLOBAL: ${total.toFixed(1)}%`;
                           }
                         }
                       },
                       datalabels: {
-                        display: false // Evitamos ruido en gráfica apilada
+                        display: false
                       }
                     },
                     scales: {
@@ -590,8 +593,7 @@ const Dashboard = () => {
                         stacked: true,
                         beginAtZero: true,
                         max: 100,
-                        ticks: { callback: (v) => v + '%' },
-                        title: { display: true, text: 'Porcentaje Ponderado (%)' }
+                        ticks: { callback: (v) => v + '%' }
                       },
                       y: {
                         stacked: true,
