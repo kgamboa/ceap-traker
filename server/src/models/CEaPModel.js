@@ -69,7 +69,7 @@ class CEaPModel {
         ), 0)::integer as avance_captura,
         COALESCE((
           SELECT ROUND(AVG(v_perc)) FROM (
-            SELECT (SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 100 as v_perc
+            SELECT (SUM(CASE WHEN d.estado_verificacion IN ('verificado', 'no_aplica') THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 100 as v_perc
             FROM ceap_fases cf3
             LEFT JOIN ceap_fase_documentos d ON cf3.id = d.ceap_fase_id
             WHERE cf3.ceap_id = cr.id
@@ -87,7 +87,7 @@ class CEaPModel {
             'porcentaje', COALESCE((
               SELECT ROUND(
                 ((COUNT(NULLIF(d.capturado_plantel, false))::float / NULLIF(COUNT(*), 0)) * 75) +
-                ((SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 25)
+                ((SUM(CASE WHEN d.estado_verificacion IN ('verificado', 'no_aplica') THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 25)
               )
               FROM ceap_fase_documentos d 
               WHERE d.ceap_fase_id = cf.id
@@ -97,7 +97,7 @@ class CEaPModel {
               FROM ceap_fase_documentos d WHERE d.ceap_fase_id = cf.id
             ), 0),
             'avance_verificacion', COALESCE((
-              SELECT ROUND((SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 100)
+              SELECT ROUND((SUM(CASE WHEN d.estado_verificacion IN ('verificado', 'no_aplica') THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 100)
               FROM ceap_fase_documentos d WHERE d.ceap_fase_id = cf.id
             ), 0)
           )

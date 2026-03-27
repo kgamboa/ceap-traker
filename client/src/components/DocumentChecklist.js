@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle, Circle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, MinusCircle } from 'lucide-react';
 
-const TriStateCheckbox = ({ value, onChange, disabled }) => {
+const MultiStateToggle = ({ value, onChange, disabled }) => {
+  const states = ['pendiente', 'verificado', 'no_aplica', 'observado'];
+  
   const getIcon = () => {
     switch (value) {
       case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+      case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
       case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
       default: return <Circle size={22} color="#d1d5db" />;
     }
@@ -13,26 +16,23 @@ const TriStateCheckbox = ({ value, onChange, disabled }) => {
 
   const handleClick = () => {
     if (disabled) return;
-    let nextValue;
-    if (value === 'verificado') nextValue = 'observado';
-    else if (value === 'observado') nextValue = 'pendiente';
-    else nextValue = 'verificado';
+    const idx = states.indexOf(value || 'pendiente');
+    const nextValue = states[(idx + 1) % states.length];
     onChange(nextValue);
   };
 
   return (
     <div 
       onClick={handleClick}
-      title={disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}`}
+      title={disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4 para elegir.`}
+      className="multistate-toggle"
       style={{ 
         cursor: disabled ? 'not-allowed' : 'pointer', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        opacity: disabled ? 0.5 : 1,
-        transition: 'transform 0.1s ease'
+        opacity: disabled ? 0.5 : 1
       }}
-      className="tristate-toggle"
     >
       {getIcon()}
     </div>
@@ -45,7 +45,7 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
 
   useEffect(() => {
     fetchDocumentos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faseId]);
 
   const fetchDocumentos = async () => {
@@ -62,10 +62,9 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
 
   const handlePlantelToggle = async (docId, currentValue) => {
     if (isAdmin) return;
-    const newValue = !currentValue;
     try {
       await ceapService.updateDocumento(faseId, docId, {
-        capturado_plantel: newValue,
+        capturado_plantel: !currentValue,
         isAdmin: false,
         ceapId: ceapId
       });
@@ -91,89 +90,159 @@ export const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
+  const handleBulkUpdate = async (status) => {
+    if (!isAdmin) return;
+    try {
+      const promises = documentos.map(doc => 
+        ceapService.updateDocumento(faseId, doc.documento_id, {
+          estado_verificacion: status,
+          isAdmin: true,
+          ceapId: ceapId,
+          capturado_plantel: status !== 'pendiente'
+        })
+      );
+      await Promise.all(promises);
+      fetchDocumentos();
+      if (onChange) onChange();
+    } catch (e) {
+      console.error('Error en actualización masiva', e);
+    }
+  };
+
+  const handleKeyDown = (e, docId) => {
+    if (!isAdmin) return;
+    const key = e.key.toLowerCase();
+    const statusMap = { '1': 'verificado', '2': 'no_aplica', '3': 'observado', '4': 'pendiente' };
+
+    if (statusMap[key]) {
+      if (window.lastKeyPressed === 'a') {
+         handleBulkUpdate(statusMap[key]);
+         window.lastKeyPressed = '';
+      } else {
+         handleAdminToggle(docId, { estado_verificacion: statusMap[key] });
+      }
+    }
+    if (key === 'a') {
+      window.lastKeyPressed = 'a';
+      setTimeout(() => { if(window.lastKeyPressed === 'a') window.lastKeyPressed = ''; }, 2000);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
   };
 
-  if (loading) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Cargando documentos...</div>;
+  const groupDocuments = () => {
+    const categories = ['Padres de Familia', 'Trabajadores', 'Alumnos'];
+    const types = ['Convocatoria', 'Acta de Asamblea', 'Lista de Asistencia', 'Evidencia Fotográfica'];
+    
+    if (documentos.length === 0 || ![1, 2].includes(documentos[0]?.fase_numero_orden)) {
+       return { type: 'list', data: documentos };
+    }
 
-  if (documentos.length === 0) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>No hay documentos requeridos para esta fase.</div>;
+    const docsByRow = {};
+    documentos.forEach(doc => {
+      let foundType = types.find(t => doc.documento_nombre.toLowerCase().includes(t.toLowerCase())) || 'Otros';
+      let foundCat = categories.find(c => doc.documento_nombre.toLowerCase().includes(c.toLowerCase())) || 'General';
+      if (!docsByRow[foundType]) docsByRow[foundType] = {};
+      docsByRow[foundType][foundCat] = doc;
+    });
+
+    const activeCategories = categories.filter(c => documentos.some(d => d.documento_nombre.includes(c)));
+    return { type: 'matrix', data: docsByRow, categories: activeCategories };
+  };
+
+  const renderDocControls = (doc) => {
+    if (!doc) return <div style={{ opacity: 0.1 }}>-</div>;
+    const isVerified = doc.estado_verificacion === 'verificado' || doc.estado_verificacion === 'no_aplica';
+    return (
+      <div 
+        onKeyDown={(e) => handleKeyDown(e, doc.documento_id)} 
+        tabIndex="0" 
+        style={{ display: 'flex', alignItems: 'center', gap: '4px', outline: 'none' }}
+      >
+        <input 
+          type="checkbox" 
+          checked={doc.capturado_plantel} 
+          onChange={(e) => isAdmin ? handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked }) : handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
+          disabled={!isAdmin && isVerified}
+          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+        />
+        {isAdmin && (
+          <MultiStateToggle 
+            value={doc.estado_verificacion} 
+            onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
+            disabled={!doc.capturado_plantel}
+          />
+        )}
+        {!isAdmin && isVerified && <CheckCircle size={16} color="#10b981" />}
+      </div>
+    );
+  };
+
+  if (loading) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Cargando documentos...</div>;
+  if (documentos.length === 0) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>No hay documentos requeridos.</div>;
+
+  const grouped = groupDocuments();
 
   return (
     <div className="document-checklist" style={{ marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
-      <h5 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#374151' }}>Documentos Requeridos</h5>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {documentos.map(doc => {
-          const isVerified = doc.estado_verificacion === 'verificado';
-          const isObserved = doc.estado_verificacion === 'observado';
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h5 style={{ fontSize: '0.9rem', margin: 0, color: '#374151', fontWeight: 'bold' }}>Documentos Requeridos</h5>
+        {isAdmin && <small style={{ fontSize: '10px', color: '#9ca3af' }}>Tip: A + 1-4 para cambios masivos</small>}
+      </div>
 
-          return (
-            <li key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
-              {isAdmin ? (
-                /* Lógica de Admin: Dos controles */
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={doc.capturado_plantel} 
-                    onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
-                    title="Captura del Plantel"
-                    style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                  />
-                  <TriStateCheckbox 
-                    value={doc.estado_verificacion} 
-                    onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
-                    disabled={!doc.capturado_plantel}
-                    title="Estado de Verificación"
-                  />
-                </div>
-              ) : (
-                /* Lógica de Plantel */
-                <input 
-                  type="checkbox" 
-                  checked={doc.capturado_plantel} 
-                  onChange={() => handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
-                  disabled={isVerified}
-                  style={{ cursor: isVerified ? 'not-allowed' : 'pointer', width: '18px', height: '18px' }}
-                />
-              )}
-              
+      {grouped.type === 'matrix' ? (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
+                <th style={{ textAlign: 'left', padding: '8px', color: '#6b7280' }}>Tipo de Documento</th>
+                {grouped.categories.map(cat => (
+                  <th key={cat} style={{ padding: '8px', textAlign: 'center', color: '#6b7280' }}>{cat.replace(' de Familia', '')}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(grouped.data).map(([type, catDocs]) => (
+                <tr key={type} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '8px', fontWeight: '500', color: '#374151' }}>{type}</td>
+                  {grouped.categories.map(cat => (
+                    <td key={cat} style={{ padding: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        {renderDocControls(catDocs[cat])}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {documentos.map(doc => (
+            <li 
+              key={doc.id} 
+              onKeyDown={(e) => handleKeyDown(e, doc.documento_id)}
+              tabIndex="0"
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px', outline: 'none' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>{renderDocControls(doc)}</div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827' }}>
-                  {doc.documento_nombre}
-                </span>
-                <div style={{ display: 'flex', gap: '12px', fontSize: '0.7rem', color: '#6b7280' }}>
-                  {doc.fecha_captura && (
-                    <span>Capturado: {formatDate(doc.fecha_captura)}</span>
-                  )}
-                  {doc.fecha_verificacion && isVerified && (
-                    <span style={{ color: '#10b981' }}>Verificado: {formatDate(doc.fecha_verificacion)}</span>
-                  )}
-                  {isObserved && (
-                    <span style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      <AlertCircle size={10} /> Observado
-                    </span>
-                  )}
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827' }}>{doc.documento_nombre}</span>
+                <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#9ca3af' }}>
+                  {doc.fecha_captura && <span>Capturado: {formatDate(doc.fecha_captura)}</span>}
+                  {doc.estado_verificacion === 'observado' && <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>OBSERVADO</span>}
+                  {doc.estado_verificacion === 'no_aplica' && <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>NO APLICA</span>}
                 </div>
               </div>
-
-              {/* Icono de Estatus de Verificación a la derecha para Plantel solamente */}
-              {!isAdmin && (
-                <div style={{ marginLeft: 'auto', paddingLeft: '8px' }}>
-                  {isVerified ? (
-                    <CheckCircle size={22} color="#10b981" />
-                  ) : isObserved ? (
-                    <AlertCircle size={22} color="#f59e0b" />
-                  ) : null}
-                </div>
-              )}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
-
-export default DocumentChecklist;

@@ -2,33 +2,40 @@ import React from 'react';
 import '../styles/Dashboard.css';
 import { AlertCircle, CheckCircle, Circle } from 'lucide-react';
 
-export const ProgressBar = ({ percentage, color = '#3b82f6', showText = true }) => {
+export const getProgressColor = (percentage) => {
+  if (percentage >= 100) return '#10b981'; // Green
+  if (percentage >= 75) return '#3b82f6';  // Blue
+  if (percentage >= 50) return '#eab308';  // Yellow
+  if (percentage >= 25) return '#f97316';  // Orange
+  return '#ef4444';                       // Red
+};
+
+export const ProgressBar = ({ percentage, color, automaticColor = true, showText = true }) => {
+  const barColor = automaticColor ? getProgressColor(percentage) : color;
   return (
     <div className="progress-bar-container" style={{ height: '10px', backgroundColor: '#e5e7eb', borderRadius: '5px', overflow: 'hidden', flex: 1 }}>
       <div
         className="progress-bar-fill"
         style={{ 
           width: `${percentage}%`, 
-          backgroundColor: color, 
+          backgroundColor: barColor, 
           height: '100%',
           transition: 'width 0.3s ease'
         }}
       />
-      {showText && <span style={{ fontSize: '10px', position: 'absolute', right: '4px', top: '-14px', fontWeight: 'bold' }}>{percentage}%</span>}
+      {showText && <span style={{ fontSize: '10px', position: 'absolute', right: '4px', top: '-14px', fontWeight: 'bold', color: '#374151' }}>{percentage}%</span>}
     </div>
   );
 };
 
 export const DualProgressBar = ({ avanceCaptura = 0, avanceVerificacion = 0 }) => {
   return (
-    <div className="dual-progress-bar" style={{ display: 'flex', gap: '4px', width: '100%', position: 'relative', marginTop: '16px' }}>
+    <div className="dual-progress-bar" style={{ display: 'flex', gap: '8px', width: '100%', position: 'relative', marginTop: '16px' }}>
       <div style={{ flex: 75, display: 'flex', flexDirection: 'column' }}>
-        <small style={{ fontSize: '9px', fontWeight: 'bold', color: '#6b7280', marginBottom: '2px' }}>CAPTURA (75%)</small>
-        <ProgressBar percentage={avanceCaptura} color="#3b82f6" />
+        <ProgressBar percentage={avanceCaptura} automaticColor={true} />
       </div>
       <div style={{ flex: 25, display: 'flex', flexDirection: 'column' }}>
-        <small style={{ fontSize: '9px', fontWeight: 'bold', color: '#6b7280', marginBottom: '2px' }}>VERIF (25%)</small>
-        <ProgressBar percentage={avanceVerificacion} color="#10b981" />
+        <ProgressBar percentage={avanceVerificacion} automaticColor={true} />
       </div>
     </div>
   );
@@ -48,11 +55,7 @@ export const StatCard = ({ title, value, icon, color = 'blue', subtitle = null }
 };
 
 export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) => {
-  const getStatusColor = (porcentaje) => {
-    if (porcentaje >= 100) return '#10b981';
-    if (porcentaje > 0) return '#f59e0b';
-    return '#9ca3af';
-  };
+  const getStatusColor = (porcentaje) => getProgressColor(porcentaje);
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
@@ -156,23 +159,22 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
           <>
             <div className="plantel-progress" style={{ marginTop: '1rem', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#374151' }}>Avance Global: {ceap.porcentaje_avance || 0}%</span>
+                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#374151' }}>
+                   Avance Global: <span style={{ color: getProgressColor(ceap.porcentaje_avance || 0) }}>{ceap.porcentaje_avance || 0}%</span>
+                 </span>
                </div>
                <DualProgressBar 
                  avanceCaptura={ceap.avance_captura || 0} 
                  avanceVerificacion={ceap.avance_verificacion || 0} 
                />
             </div>
-            {(ceap.ultima_actualizacion_usuario || ceap.ultima_actualizacion_admin || ceap.ultima_actualizacion_documento) && (
+            {(ceap.ultima_actualizacion_usuario || ceap.ultima_actualizacion_admin) && (
               <div className="plantel-timestamps" style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.75rem' }}>
                 {ceap.ultima_actualizacion_usuario && (
                   <p><strong>Últ. usuario:</strong> {formatDateTime(ceap.ultima_actualizacion_usuario)}</p>
                 )}
                 {ceap.ultima_actualizacion_admin && (
                   <p><strong>Últ. admin:</strong> {formatDateTime(ceap.ultima_actualizacion_admin)}</p>
-                )}
-                {ceap.ultima_actualizacion_documento && (
-                  <p><strong>Últ. documento:</strong> {new Date(ceap.ultima_actualizacion_documento).toLocaleDateString('es-MX')}</p>
                 )}
               </div>
             )}

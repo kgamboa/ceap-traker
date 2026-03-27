@@ -27,7 +27,7 @@ class CEaPFaseModel {
         COALESCE(
           (SELECT ROUND(
             ((COUNT(NULLIF(d.capturado_plantel, false))::float / NULLIF(COUNT(*), 0)) * 75) +
-            ((SUM(CASE WHEN d.estado_verificacion = 'verificado' THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 25)
+            ((SUM(CASE WHEN d.estado_verificacion IN ('verificado', 'no_aplica') THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 25)
           )
           FROM ceap_fase_documentos d 
           WHERE d.ceap_fase_id = cf.id), 0
