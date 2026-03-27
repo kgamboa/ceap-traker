@@ -1,6 +1,5 @@
-import React from 'react';
-import '../styles/Dashboard.css';
-import { AlertCircle, CheckCircle, Circle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Circle, ChevronDown, ChevronUp, Save, Edit2 } from 'lucide-react';
+import { ceapService } from '../services/api';
 
 export const getProgressColor = (percentage) => {
   if (percentage >= 100) return '#10b981'; // Green
@@ -54,23 +53,56 @@ export const StatCard = ({ title, value, icon, color = 'blue', subtitle = null }
   );
 };
 
-export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) => {
+export const FaseStatus = ({ fase, isAdmin = false, onUpdate = null }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [editData, setEditData] = React.useState({
+    fecha_estimada: fase.fecha_estimada ? fase.fecha_estimada.split('T')[0] : '',
+    observaciones: fase.observaciones || ''
+  });
+
   const getStatusColor = (porcentaje) => getProgressColor(porcentaje);
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
-    const dateOnly = dateString.split('T')[0];
-    const [year, month, day] = dateOnly.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
+    try {
+      const dateOnly = dateString.split('T')[0];
+      const [year, month, day] = dateOnly.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
+    } catch (e) {
+      return dateString;
+    }
   };
 
   const isCompleted = fase.porcentaje >= 100;
 
+  const handleSave = async (e) => {
+    e.stopPropagation();
+    try {
+      setLoading(true);
+      await ceapService.updateFase(fase.id, {
+        ...editData,
+        ceapId: fase.ceap_id,
+        isAdmin: isAdmin
+      });
+      setExpanded(false);
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error al actualizar fase:', err);
+      alert('Error al guardar cambios');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="fase-status">
-      <div className="fase-status-header">
-        <h4>{fase.fase_nombre}</h4>
+    <div className="fase-status" style={{ position: 'relative' }}>
+      <div className="fase-status-header" style={{ cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+        <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {fase.fase_nombre}
+          {!expanded ? <ChevronDown size={14} color="#9ca3af" /> : <ChevronUp size={14} color="#9ca3af" />}
+        </h4>
         <span
           className="status-badge"
           style={{ backgroundColor: getStatusColor(fase.porcentaje) }}
@@ -79,33 +111,89 @@ export const FaseStatus = ({ fase, isAdmin = false, onEvidenceToggle = null }) =
         </span>
       </div>
 
-      <div className="fase-info-compact">
-        {isCompleted ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <p className="fase-date-compact" style={{ margin: 0, color: '#10b981', fontWeight: 'bold' }}>
-              <strong>Conc:</strong> {formatDate(fase.fecha_conclusión || new Date().toISOString())}
-            </p>
+      {!expanded ? (
+        <div className="fase-info-compact" onClick={() => setExpanded(true)} style={{ cursor: 'pointer', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+            {isCompleted ? (
+              <p className="fase-date-compact" style={{ margin: 0, color: '#10b981', fontWeight: 'bold', fontSize: '11px' }}>
+                <strong>Conc:</strong> {formatDate(fase.fecha_conclusión || new Date().toISOString())}
+              </p>
+            ) : fase.fecha_estimada ? (
+              <p className="fase-date-compact" style={{ margin: 0, fontSize: '11px' }}>
+                <strong>Est:</strong> {formatDate(fase.fecha_estimada)}
+              </p>
+            ) : null}
             <div style={{ flex: 1 }}>
-              <DualProgressBar avanceCaptura={100} avanceVerificacion={100} />
+              <DualProgressBar avanceCaptura={fase.avance_captura || 0} avanceVerificacion={fase.avance_verificacion || 0} />
             </div>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-             {fase.fecha_estimada && (
-                <small style={{ fontSize: '11px', color: '#6b7280', alignSelf: 'flex-end' }}>
-                  Est: {formatDate(fase.fecha_estimada)}
-                </small>
-             )}
-             <DualProgressBar 
-               avanceCaptura={fase.avance_captura || 0} 
-               avanceVerificacion={fase.avance_verificacion || 0} 
-             />
+          
+          {fase.observaciones && (
+            <div 
+              className="fase-notes-compact" 
+              style={{ 
+                marginTop: '4px',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxHeight: '2.6em' // Backup for clamp
+              }}
+            >
+              {fase.observaciones}
+            </div>
+          )}
+          {!fase.observaciones && !fase.fecha_estimada && !isCompleted && (
+            <small style={{ color: '#9ca3af', fontSize: '10px', fontStyle: 'italic' }}>
+              Sin fecha estimada ni notas. Haz clic para agregar.
+            </small>
+          )}
+        </div>
+      ) : (
+        <div className="fase-editor-inline" style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label style={{ fontSize: '11px', marginBottom: '2px' }}>Fecha Estimada:</label>
+              <input 
+                type="date" 
+                value={editData.fecha_estimada}
+                onChange={(e) => setEditData({...editData, fecha_estimada: e.target.value})}
+                style={{ padding: '4px 8px', fontSize: '12px' }}
+              />
+            </div>
+            <div style={{ alignSelf: 'flex-end' }}>
+               <DualProgressBar avanceCaptura={fase.avance_captura || 0} avanceVerificacion={fase.avance_verificacion || 0} />
+            </div>
           </div>
-        )}
-      </div>
-
-      {fase.observaciones && (
-        <p className="fase-notes-compact">{fase.observaciones}</p>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label style={{ fontSize: '11px', marginBottom: '2px' }}>Notas / Observaciones:</label>
+            <textarea 
+              value={editData.observaciones}
+              onChange={(e) => setEditData({...editData, observaciones: e.target.value})}
+              placeholder="Escribe detalles sobre el progreso de esta fase..."
+              style={{ minHeight: '60px', padding: '8px', fontSize: '12px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+            <button 
+              className="btn btn-sm btn-secondary" 
+              onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+              disabled={loading}
+              style={{ fontSize: '11px' }}
+            >
+              Cancelar
+            </button>
+            <button 
+              className="btn btn-sm btn-success" 
+              onClick={handleSave}
+              disabled={loading}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}
+            >
+              <Save size={14} /> {loading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

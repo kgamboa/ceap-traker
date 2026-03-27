@@ -83,6 +83,20 @@ export const ObservacionesChat = ({ faseId }) => {
            date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
   };
 
+  const getMessageStyle = (msg) => {
+    const nombre = (msg.usuario_nombre || '').toLowerCase();
+    if (nombre.includes('karlo')) {
+      return { bgColor: '#dbeafe', borderColor: '#bfdbfe' }; // Blue
+    }
+    if (nombre.includes('joaquin')) {
+      return { bgColor: '#fce7f3', borderColor: '#fbcfe8' }; // Rose
+    }
+    if (msg.es_admin) {
+      return { bgColor: '#f3f4f6', borderColor: '#e5e7eb' }; // Light grey for other admins
+    }
+    return { bgColor: '#dcfce3', borderColor: '#bbf7d0' }; // Green for Plantel
+  };
+
   return (
     <div style={{ marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
       <button 
@@ -131,13 +145,14 @@ export const ObservacionesChat = ({ faseId }) => {
             ) : (
               mensajes.map((msg) => {
                 const isMine = msg.es_admin === isAdmin;
+                const { bgColor, borderColor } = getMessageStyle(msg);
                 return (
                   <div key={msg.id} style={{ 
                     alignSelf: isMine ? 'flex-end' : 'flex-start',
                     maxWidth: '85%',
-                    backgroundColor: isMine ? (isAdmin ? '#dbeafe' : '#dcfce3') : '#ffffff',
+                    backgroundColor: bgColor,
                     border: '1px solid',
-                    borderColor: isMine ? (isAdmin ? '#bfdbfe' : '#bbf7d0') : '#e5e7eb',
+                    borderColor: borderColor,
                     borderRadius: '6px',
                     padding: '6px 10px',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)',

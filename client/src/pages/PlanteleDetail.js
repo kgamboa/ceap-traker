@@ -383,6 +383,7 @@ export const PlanteleDetail = () => {
                       <FaseStatus
                         fase={fase}
                         isAdmin={isAdmin}
+                        onUpdate={handleDocumentChange}
                       />
                       <DocumentChecklist 
                         faseId={fase.id} 
