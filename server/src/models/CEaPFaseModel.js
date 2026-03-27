@@ -183,15 +183,16 @@ class CEaPFaseModel {
         );
         resultDoc = result.rows[0];
       } else {
-        // Plantel can only update capture
+        // Plantel can update capture and also set status to 'no_aplica' if needed
         const result = await pool.query(
           `UPDATE ceap_fase_documentos 
            SET capturado_plantel = $1::boolean, 
+               estado_verificacion = CASE WHEN $2::text = 'no_aplica' THEN 'no_aplica' ELSE 'pendiente' END,
                fecha_captura = CASE WHEN $1::boolean = true THEN CURRENT_TIMESTAMP ELSE null END,
                updated_at = CURRENT_TIMESTAMP
-           WHERE ceap_fase_id = $2::uuid AND documento_id = $3::integer
+           WHERE ceap_fase_id = $3::uuid AND documento_id = $4::integer
            RETURNING *`,
-          [capturado_plantel, ceapFaseId, Number(documentoId)]
+          [capturado_plantel, estado_verificacion, ceapFaseId, Number(documentoId)]
         );
         resultDoc = result.rows[0];
       }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
 import { CheckCircle, AlertCircle, Circle, MinusCircle } from 'lucide-react';
 
-const MultiStateToggle = ({ value, onChange, disabled }) => {
+const MultiStateToggle = ({ value, onChange, disabled, title }) => {
   const states = ['pendiente', 'verificado', 'no_aplica', 'observado'];
   
   const getIcon = () => {
@@ -24,8 +24,54 @@ const MultiStateToggle = ({ value, onChange, disabled }) => {
   return (
     <div 
       onClick={handleClick}
-      title={disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4 para elegir.`}
+      title={title || (disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4 para elegir.`)}
       className="multistate-toggle"
+      style={{ 
+        cursor: disabled ? 'not-allowed' : 'pointer', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        opacity: disabled ? 0.5 : 1
+      }}
+    >
+      {getIcon()}
+    </div>
+  );
+};
+
+const PlantelToggle = ({ doc, onChange, disabled }) => {
+  const getStatus = () => {
+    if (doc.estado_verificacion === 'no_aplica') return 'no_aplica';
+    if (doc.capturado_plantel) return 'capturado';
+    return 'pendiente';
+  };
+
+  const status = getStatus();
+
+  const getIcon = () => {
+    switch (status) {
+      case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
+      case 'capturado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+      default: return <Circle size={22} color="#d1d5db" />;
+    }
+  };
+
+  const handleClick = () => {
+    if (disabled) return;
+    
+    if (status === 'pendiente') {
+      onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' });
+    } else if (status === 'capturado') {
+      onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' });
+    } else {
+      onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'capturado' ? 'Capturado' : 'Pendiente'}. Clic para cambiar.`}
       style={{ 
         cursor: disabled ? 'not-allowed' : 'pointer', 
         display: 'flex', 
@@ -60,11 +106,11 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handlePlantelToggle = async (docId, currentValue) => {
+  const handlePlantelUpdate = async (docId, data) => {
     if (isAdmin) return;
     try {
       await ceapService.updateDocumento(faseId, docId, {
-        capturado_plantel: !currentValue,
+        ...data,
         isAdmin: false,
         ceapId: ceapId
       });
@@ -156,28 +202,41 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
 
   const renderDocControls = (doc) => {
     if (!doc) return <div style={{ opacity: 0.1 }}>-</div>;
-    const isVerified = doc.estado_verificacion === 'verificado' || doc.estado_verificacion === 'no_aplica';
+    const isLockedForPlantel = doc.estado_verificacion === 'verificado';
     return (
       <div 
         onKeyDown={(e) => handleKeyDown(e, doc.documento_id)} 
         tabIndex="0" 
-        style={{ display: 'flex', alignItems: 'center', gap: '4px', outline: 'none' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', outline: 'none' }}
       >
-        <input 
-          type="checkbox" 
-          checked={doc.capturado_plantel} 
-          onChange={(e) => isAdmin ? handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked }) : handlePlantelToggle(doc.documento_id, doc.capturado_plantel)}
-          disabled={!isAdmin && isVerified}
-          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-        />
-        {isAdmin && (
-          <MultiStateToggle 
-            value={doc.estado_verificacion} 
-            onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
-            disabled={!doc.capturado_plantel}
+        {isAdmin ? (
+          <>
+            <input 
+              type="checkbox" 
+              title={doc.capturado_plantel ? "Marcar como NO capturado" : "Marcar como capturado"}
+              checked={doc.capturado_plantel} 
+              onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
+              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+            />
+            <MultiStateToggle 
+              value={doc.estado_verificacion} 
+              onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
+              disabled={!doc.capturado_plantel}
+            />
+          </>
+        ) : (
+          <PlantelToggle 
+            doc={doc} 
+            onChange={(data) => handlePlantelUpdate(doc.documento_id, data)}
+            disabled={isLockedForPlantel}
           />
         )}
-        {!isAdmin && isVerified && <CheckCircle size={16} color="#10b981" />}
+        {!isAdmin && doc.estado_verificacion === 'verificado' && (
+           <div title="Verificado por Admin"><CheckCircle size={18} color="#10b981" /></div>
+        )}
+        {!isAdmin && doc.estado_verificacion === 'observado' && (
+           <div title="Observado por Admin"><AlertCircle size={18} color="#f59e0b" /></div>
+        )}
       </div>
     );
   };
