@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle, Circle, MinusCircle, Clock } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, MinusCircle, Clock, XCircle } from 'lucide-react';
 
 const MultiStateToggle = ({ value, onChange, disabled, title }) => {
-  const states = ['pendiente', 'verificado', 'no_aplica', 'observado'];
+  const states = ['pendiente', 'verificado', 'no_aplica', 'observado', 'no_entregado'];
   
   const getIcon = () => {
     switch (value) {
       case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
       case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
       case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
+      case 'no_entregado': return <XCircle size={22} color="#ef4444" fill="#fef2f2" />;
       default: return <Circle size={22} color="#d1d5db" />;
     }
   };
@@ -24,7 +25,7 @@ const MultiStateToggle = ({ value, onChange, disabled, title }) => {
   return (
     <div 
       onClick={handleClick}
-      title={title || (disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4 para elegir.`)}
+      title={title || (disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4,5 para elegir.`)}
       className="multistate-toggle"
       style={{ 
         cursor: disabled ? 'not-allowed' : 'pointer', 
@@ -44,6 +45,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
     if (doc.estado_verificacion === 'no_aplica') return 'no_aplica';
     if (doc.estado_verificacion === 'verificado') return 'verificado';
     if (doc.estado_verificacion === 'observado') return 'observado';
+    if (doc.estado_verificacion === 'no_entregado') return 'no_entregado';
     if (doc.capturado_plantel) return 'capturado';
     return 'pendiente';
   };
@@ -55,6 +57,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
       case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
       case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
       case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
+      case 'no_entregado': return <XCircle size={22} color="#ef4444" fill="#fef2f2" />;
       case 'capturado': return <Clock size={22} color="#3b82f6" fill="#eff6ff" />;
       default: return <Circle size={22} color="#d1d5db" />;
     }
@@ -68,7 +71,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
     } else if (status === 'capturado') {
       onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' });
     } else {
-      // If it is 'no_aplica' or 'observado', a click resets it to pendiente/empty
+      // If it is 'no_aplica', 'observado', or 'no_entregado', a click resets it to pendiente/empty
       onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
     }
   };
@@ -76,7 +79,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
   return (
     <div 
       onClick={handleClick}
-      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'verificado' ? 'Verificado por Admin' : status === 'observado' ? 'Observado por Admin' : status === 'capturado' ? 'Capturado (Pendiente de revisar)' : 'Pendiente'}. Clic para cambiar.`}
+      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'verificado' ? 'Verificado por Admin' : status === 'observado' ? 'Observado por Admin' : status === 'no_entregado' ? 'No Entregado (Requiere Atención)' : status === 'capturado' ? 'Capturado (Pendiente de revisar)' : 'Pendiente'}. Clic para cambiar.`}
       style={{ 
         cursor: disabled ? 'not-allowed' : 'pointer', 
         display: 'flex', 
@@ -144,7 +147,7 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
   const handleKeyDown = (e, docId) => {
     if (!isAdmin) return;
     const key = e.key.toLowerCase();
-    const statusMap = { '1': 'verificado', '2': 'no_aplica', '3': 'observado', '4': 'pendiente' };
+    const statusMap = { '1': 'verificado', '2': 'no_aplica', '3': 'observado', '4': 'no_entregado', '5': 'pendiente' };
 
     if (statusMap[key]) {
       handleAdminToggle(docId, { estado_verificacion: statusMap[key] });
@@ -266,6 +269,7 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
                   {doc.fecha_captura && <span>Capturado: {formatDate(doc.fecha_captura)}</span>}
                   {doc.estado_verificacion === 'observado' && <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>OBSERVADO</span>}
                   {doc.estado_verificacion === 'no_aplica' && <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>NO APLICA</span>}
+                  {doc.estado_verificacion === 'no_entregado' && <span style={{ color: '#ef4444', fontWeight: 'bold' }}>NO ENTREGADO</span>}
                 </div>
               </div>
             </li>
