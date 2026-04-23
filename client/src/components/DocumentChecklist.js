@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle, Circle, MinusCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, MinusCircle, Clock } from 'lucide-react';
 
 const MultiStateToggle = ({ value, onChange, disabled, title }) => {
   const states = ['pendiente', 'verificado', 'no_aplica', 'observado'];
@@ -42,6 +42,8 @@ const MultiStateToggle = ({ value, onChange, disabled, title }) => {
 const PlantelToggle = ({ doc, onChange, disabled }) => {
   const getStatus = () => {
     if (doc.estado_verificacion === 'no_aplica') return 'no_aplica';
+    if (doc.estado_verificacion === 'verificado') return 'verificado';
+    if (doc.estado_verificacion === 'observado') return 'observado';
     if (doc.capturado_plantel) return 'capturado';
     return 'pendiente';
   };
@@ -51,7 +53,9 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
   const getIcon = () => {
     switch (status) {
       case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
-      case 'capturado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+      case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+      case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
+      case 'capturado': return <Clock size={22} color="#3b82f6" fill="#eff6ff" />;
       default: return <Circle size={22} color="#d1d5db" />;
     }
   };
@@ -64,6 +68,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
     } else if (status === 'capturado') {
       onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' });
     } else {
+      // If it is 'no_aplica' or 'observado', a click resets it to pendiente/empty
       onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
     }
   };
@@ -71,7 +76,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
   return (
     <div 
       onClick={handleClick}
-      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'capturado' ? 'Capturado' : 'Pendiente'}. Clic para cambiar.`}
+      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'verificado' ? 'Verificado por Admin' : status === 'observado' ? 'Observado por Admin' : status === 'capturado' ? 'Capturado (Pendiente de revisar)' : 'Pendiente'}. Clic para cambiar.`}
       style={{ 
         cursor: disabled ? 'not-allowed' : 'pointer', 
         display: 'flex', 
@@ -202,12 +207,6 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
             onChange={(data) => handlePlantelUpdate(doc.documento_id, data)}
             disabled={isLockedForPlantel}
           />
-        )}
-        {!isAdmin && doc.estado_verificacion === 'verificado' && (
-           <div title="Verificado por Admin"><CheckCircle size={18} color="#10b981" /></div>
-        )}
-        {!isAdmin && doc.estado_verificacion === 'observado' && (
-           <div title="Observado por Admin"><AlertCircle size={18} color="#f59e0b" /></div>
         )}
       </div>
     );
