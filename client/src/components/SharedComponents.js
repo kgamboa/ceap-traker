@@ -228,9 +228,26 @@ export const PlanteleCard = ({ plantel, ceap, onClick }) => {
 
   return (
     <div className="plantel-card" onClick={onClick}>
-      <div className="plantel-card-header">
-        <h3>{plantel.nombre}</h3>
-        <span className="plantel-code">{plantel.codigo}</span>
+      <div className="plantel-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1 }}>
+          <h3>{plantel.nombre}</h3>
+          <span className="plantel-code">{plantel.codigo}</span>
+        </div>
+        {ceap && ceap.docs_pendientes_revision > 0 && (
+          <div style={{ 
+            backgroundColor: '#fef3c7', 
+            color: '#92400e', 
+            fontSize: '10px', 
+            fontWeight: 'bold', 
+            padding: '2px 8px', 
+            borderRadius: '12px',
+            border: '1px solid #f59e0b',
+            whiteSpace: 'nowrap',
+            marginLeft: '8px'
+          }}>
+            {ceap.docs_pendientes_revision} POR REVISAR
+          </div>
+        )}
       </div>
       <div className="plantel-card-body">
         <p><strong>Ciclo:</strong> {getCEaPCycle()}</p>

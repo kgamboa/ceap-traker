@@ -76,6 +76,12 @@ class CEaPModel {
             GROUP BY cf3.id
           ) s2
         ), 0)::integer as avance_verificacion,
+        COALESCE((
+          SELECT COUNT(*) 
+          FROM ceap_fases cf4
+          JOIN ceap_fase_documentos d ON cf4.id = d.ceap_fase_id
+          WHERE cf4.ceap_id = cr.id AND d.capturado_plantel = true AND d.estado_verificacion = 'pendiente'
+        ), 0)::integer as docs_pendientes_revision,
         json_agg(
           json_build_object(
             'id', cf.id,
