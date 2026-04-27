@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle, Circle, MinusCircle, XCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, MinusCircle, Clock, XCircle } from 'lucide-react';
 
 const MultiStateToggle = ({ value, onChange, disabled, title, restricted }) => {
   const states = ['pendiente', 'verificado', 'no_aplica', 'observado', 'no_entregado'];
@@ -48,21 +48,13 @@ const MultiStateToggle = ({ value, onChange, disabled, title, restricted }) => {
   );
 };
 
-const PlantelToggle = ({ doc, onChange, disabled }) => {
+const PlantelToggleButtons = ({ doc, onChange, disabled }) => {
   const status = doc.estado_verificacion;
   const isCaptured = doc.capturado_plantel;
 
-  if (status === 'verificado') {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontWeight: 'bold', fontSize: '11px' }}>
-        <CheckCircle size={18} fill="#ecfdf5" /> Verificado
-      </div>
-    );
-  }
-
   const btnStyle = (active, activeColor) => ({
-    padding: '4px 10px',
-    fontSize: '10px',
+    padding: '4px 12px',
+    fontSize: '11px',
     fontWeight: '600',
     borderRadius: '6px',
     border: '1px solid',
@@ -72,8 +64,8 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
     cursor: disabled ? 'not-allowed' : 'pointer',
     transition: 'all 0.2s ease',
     opacity: disabled ? 0.6 : 1,
-    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
   });
 
   const isEntregado = isCaptured && status === 'pendiente';
@@ -81,11 +73,10 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
   const isPendiente = !isCaptured && (status === 'pendiente' || status === 'no_entregado');
 
   return (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', animation: 'fadeInUp 0.3s ease' }}>
       <button
         onClick={() => !disabled && onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' })}
-        style={btnStyle(isEntregado, '#3b82f6')}
-        title={status === 'observado' ? 'Marcar como solventado' : 'Marcar como entregado'}
+        style={btnStyle(isEntregado || (status === 'observado' && isCaptured), isEntregado ? '#3b82f6' : status === 'observado' ? '#f59e0b' : '#3b82f6')}
       >
         {status === 'observado' ? 'Solventar' : 'Entregar'}
       </button>
@@ -103,6 +94,12 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
       >
         Pendiente
       </button>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };
@@ -110,6 +107,7 @@ const PlantelToggle = ({ doc, onChange, disabled }) => {
 const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredDocId, setHoveredDocId] = useState(null);
 
   useEffect(() => {
     fetchDocumentos();
@@ -140,6 +138,21 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
       if (onChange) onChange();
     } catch (e) {
       console.error('Error actualizando documento', e);
+    }
+  };
+
+  const handlePlantelClick = (doc) => {
+    if (isAdmin || doc.estado_verificacion === 'verificado') return;
+    
+    const status = doc.estado_verificacion;
+    const isCaptured = doc.capturado_plantel;
+    
+    if (!isCaptured && status === 'pendiente') {
+      handlePlantelUpdate(doc.documento_id, { capturado_plantel: true, estado_verificacion: 'pendiente' });
+    } else if (isCaptured && status === 'pendiente') {
+      handlePlantelUpdate(doc.documento_id, { capturado_plantel: true, estado_verificacion: 'no_aplica' });
+    } else {
+      handlePlantelUpdate(doc.documento_id, { capturado_plantel: false, estado_verificacion: 'pendiente' });
     }
   };
 
@@ -179,6 +192,18 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     return date.toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' });
   };
 
+  const renderCompactIcon = (doc) => {
+    const status = doc.estado_verificacion;
+    const isCaptured = doc.capturado_plantel;
+    
+    if (status === 'verificado') return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
+    if (status === 'no_aplica') return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
+    if (status === 'observado') return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
+    if (status === 'no_entregado') return <XCircle size={22} color="#ef4444" fill="#fef2f2" />;
+    if (isCaptured) return <Clock size={22} color="#3b82f6" fill="#eff6ff" />;
+    return <Circle size={22} color="#d1d5db" />;
+  };
+
   const groupDocuments = () => {
     const categories = ['Padres de Familia', 'Trabajadores', 'Alumnos'];
     const types = ['Convocatoria', 'Acta de Asamblea', 'Lista de Asistencia', 'Evidencia Fotográfica'];
@@ -201,36 +226,25 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
 
   const renderDocControls = (doc) => {
     if (!doc) return <div style={{ opacity: 0.1 }}>-</div>;
-    const isLockedForPlantel = doc.estado_verificacion === 'verificado';
     return (
       <div 
         onKeyDown={(e) => handleKeyDown(e, doc)} 
         tabIndex="0" 
         style={{ display: 'flex', alignItems: 'center', gap: '8px', outline: 'none' }}
       >
-        {isAdmin ? (
-          <>
-            <input 
-              type="checkbox" 
-              title={doc.capturado_plantel ? "Marcar como NO capturado" : "Marcar como capturado"}
-              checked={doc.capturado_plantel} 
-              onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
-              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-            />
-            <MultiStateToggle 
-              value={doc.estado_verificacion} 
-              onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
-              disabled={!doc.capturado_plantel}
-              restricted={!doc.capturado_plantel}
-            />
-          </>
-        ) : (
-          <PlantelToggle 
-            doc={doc} 
-            onChange={(data) => handlePlantelUpdate(doc.documento_id, data)}
-            disabled={isLockedForPlantel}
-          />
-        )}
+        <input 
+          type="checkbox" 
+          title={doc.capturado_plantel ? "Marcar como NO capturado" : "Marcar como capturado"}
+          checked={doc.capturado_plantel} 
+          onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
+          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+        />
+        <MultiStateToggle 
+          value={doc.estado_verificacion} 
+          onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
+          disabled={!doc.capturado_plantel}
+          restricted={!doc.capturado_plantel}
+        />
       </div>
     );
   };
@@ -261,37 +275,90 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
               {Object.entries(grouped.data).map(([type, catDocs]) => (
                 <tr key={type} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '8px', fontWeight: '500', color: '#374151' }}>{type}</td>
-                  {grouped.categories.map(cat => (
-                    <td key={cat} style={{ padding: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        {renderDocControls(catDocs[cat])}
-                      </div>
-                    </td>
-                  ))}
+                  {grouped.categories.map(cat => {
+                    const doc = catDocs[cat];
+                    if (!doc) return <td key={cat} style={{ padding: '8px', textAlign: 'center', opacity: 0.1 }}>-</td>;
+                    return (
+                      <td 
+                        key={cat} 
+                        style={{ padding: '8px', verticalAlign: 'top', position: 'relative' }}
+                        onMouseEnter={() => setHoveredDocId(doc.id)}
+                        onMouseLeave={() => setHoveredDocId(null)}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                           {isAdmin ? renderDocControls(doc) : (
+                             <div 
+                               onClick={() => handlePlantelClick(doc)}
+                               style={{ cursor: doc.estado_verificacion === 'verificado' ? 'not-allowed' : 'pointer' }}
+                             >
+                               {renderCompactIcon(doc)}
+                             </div>
+                           )}
+                           {!isAdmin && doc.estado_verificacion !== 'verificado' && hoveredDocId === doc.id && (
+                             <div style={{ position: 'absolute', zIndex: 10, backgroundColor: '#fff', padding: '6px', borderRadius: '8px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', marginTop: '26px' }}>
+                               <PlantelToggleButtons doc={doc} onChange={(data) => handlePlantelUpdate(doc.documento_id, data)} />
+                             </div>
+                           )}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {documentos.map(doc => (
             <li 
               key={doc.id} 
               onKeyDown={(e) => handleKeyDown(e, doc)}
+              onMouseEnter={() => setHoveredDocId(doc.id)}
+              onMouseLeave={() => setHoveredDocId(null)}
               tabIndex="0"
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px', outline: 'none' }}
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '8px', 
+                padding: '12px', 
+                backgroundColor: hoveredDocId === doc.id ? '#f3f4f6' : '#f9fafb', 
+                borderRadius: '8px', 
+                outline: 'none',
+                transition: 'background-color 0.2s ease'
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center' }}>{renderDocControls(doc)}</div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827' }}>{doc.documento_nombre}</span>
-                <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#9ca3af' }}>
-                  {doc.fecha_captura && <span>Capturado: {formatDate(doc.fecha_captura)}</span>}
-                  {doc.estado_verificacion === 'observado' && <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>OBSERVADO</span>}
-                  {doc.estado_verificacion === 'no_aplica' && <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>NO APLICA</span>}
-                  {doc.estado_verificacion === 'no_entregado' && <span style={{ color: '#ef4444', fontWeight: 'bold' }}>NO ENTREGADO</span>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {isAdmin ? renderDocControls(doc) : (
+                    <div 
+                       onClick={() => handlePlantelClick(doc)}
+                       style={{ cursor: doc.estado_verificacion === 'verificado' ? 'not-allowed' : 'pointer' }}
+                    >
+                      {renderCompactIcon(doc)}
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#111827' }}>{doc.documento_nombre}</span>
+                  <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#9ca3af' }}>
+                    {doc.fecha_captura && <span>Capturado: {formatDate(doc.fecha_captura)}</span>}
+                    {doc.estado_verificacion === 'observado' && <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>OBSERVADO</span>}
+                    {doc.estado_verificacion === 'no_aplica' && <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>NO APLICA</span>}
+                    {doc.estado_verificacion === 'no_entregado' && <span style={{ color: '#ef4444', fontWeight: 'bold' }}>NO ENTREGADO</span>}
+                  </div>
                 </div>
               </div>
+
+              {!isAdmin && doc.estado_verificacion !== 'verificado' && hoveredDocId === doc.id && (
+                <div style={{ paddingLeft: '32px', marginTop: '4px' }}>
+                  <PlantelToggleButtons 
+                    doc={doc} 
+                    onChange={(data) => handlePlantelUpdate(doc.documento_id, data)}
+                    disabled={doc.estado_verificacion === 'verificado'}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
