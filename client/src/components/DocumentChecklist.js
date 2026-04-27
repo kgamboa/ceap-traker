@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ceapService } from '../services/api';
-import { CheckCircle, AlertCircle, Circle, MinusCircle, Clock, XCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, MinusCircle, XCircle } from 'lucide-react';
 
-const MultiStateToggle = ({ value, onChange, disabled, title }) => {
+const MultiStateToggle = ({ value, onChange, disabled, title, restricted }) => {
   const states = ['pendiente', 'verificado', 'no_aplica', 'observado', 'no_entregado'];
   
   const getIcon = () => {
@@ -16,7 +16,15 @@ const MultiStateToggle = ({ value, onChange, disabled, title }) => {
   };
 
   const handleClick = () => {
-    if (disabled) return;
+    if (disabled && !restricted) return;
+    
+    if (restricted) {
+      // Toggle solo entre pendiente y no_entregado
+      const nextValue = (value === 'no_entregado') ? 'pendiente' : 'no_entregado';
+      onChange(nextValue);
+      return;
+    }
+
     const idx = states.indexOf(value || 'pendiente');
     const nextValue = states[(idx + 1) % states.length];
     onChange(nextValue);
@@ -25,14 +33,14 @@ const MultiStateToggle = ({ value, onChange, disabled, title }) => {
   return (
     <div 
       onClick={handleClick}
-      title={title || (disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4,5 para elegir.`)}
+      title={title || (restricted ? `Estado: ${value === 'no_entregado' ? 'No Entregado' : 'Pendiente'}. Clic para cambiar.` : disabled ? "Primero debe estar capturado" : `Estado: ${value || 'pendiente'}. Clic para rotar o 1,2,3,4,5 para elegir.`)}
       className="multistate-toggle"
       style={{ 
-        cursor: disabled ? 'not-allowed' : 'pointer', 
+        cursor: (disabled && !restricted) ? 'not-allowed' : 'pointer', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        opacity: disabled ? 0.5 : 1
+        opacity: (disabled && !restricted) ? 0.5 : 1
       }}
     >
       {getIcon()}
@@ -41,54 +49,60 @@ const MultiStateToggle = ({ value, onChange, disabled, title }) => {
 };
 
 const PlantelToggle = ({ doc, onChange, disabled }) => {
-  const getStatus = () => {
-    if (doc.estado_verificacion === 'no_aplica') return 'no_aplica';
-    if (doc.estado_verificacion === 'verificado') return 'verificado';
-    if (doc.estado_verificacion === 'observado') return 'observado';
-    if (doc.estado_verificacion === 'no_entregado') return 'no_entregado';
-    if (doc.capturado_plantel) return 'capturado';
-    return 'pendiente';
-  };
+  const status = doc.estado_verificacion;
+  const isCaptured = doc.capturado_plantel;
 
-  const status = getStatus();
+  if (status === 'verificado') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontWeight: 'bold', fontSize: '11px' }}>
+        <CheckCircle size={18} fill="#ecfdf5" /> Verificado
+      </div>
+    );
+  }
 
-  const getIcon = () => {
-    switch (status) {
-      case 'no_aplica': return <MinusCircle size={22} color="#3b82f6" fill="#eff6ff" />;
-      case 'verificado': return <CheckCircle size={22} color="#10b981" fill="#ecfdf5" />;
-      case 'observado': return <AlertCircle size={22} color="#f59e0b" fill="#fffbeb" />;
-      case 'no_entregado': return <XCircle size={22} color="#ef4444" fill="#fef2f2" />;
-      case 'capturado': return <Clock size={22} color="#3b82f6" fill="#eff6ff" />;
-      default: return <Circle size={22} color="#d1d5db" />;
-    }
-  };
+  const btnStyle = (active, activeColor) => ({
+    padding: '4px 10px',
+    fontSize: '10px',
+    fontWeight: '600',
+    borderRadius: '6px',
+    border: '1px solid',
+    borderColor: active ? activeColor : '#d1d5db',
+    backgroundColor: active ? activeColor : '#fff',
+    color: active ? '#fff' : '#4b5563',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.2s ease',
+    opacity: disabled ? 0.6 : 1,
+    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+    whiteSpace: 'nowrap'
+  });
 
-  const handleClick = () => {
-    if (disabled) return;
-    
-    if (status === 'pendiente') {
-      onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' });
-    } else if (status === 'capturado') {
-      onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' });
-    } else {
-      // If it is 'no_aplica', 'observado', or 'no_entregado', a click resets it to pendiente/empty
-      onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
-    }
-  };
+  const isEntregado = isCaptured && status === 'pendiente';
+  const isNoAplica = status === 'no_aplica';
+  const isPendiente = !isCaptured && (status === 'pendiente' || status === 'no_entregado');
 
   return (
-    <div 
-      onClick={handleClick}
-      title={`Estado: ${status === 'no_aplica' ? 'No aplica' : status === 'verificado' ? 'Verificado por Admin' : status === 'observado' ? 'Observado por Admin' : status === 'no_entregado' ? 'No Entregado (Requiere Atención)' : status === 'capturado' ? 'Capturado (Pendiente de revisar)' : 'Pendiente'}. Clic para cambiar.`}
-      style={{ 
-        cursor: disabled ? 'not-allowed' : 'pointer', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        opacity: disabled ? 0.5 : 1
-      }}
-    >
-      {getIcon()}
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <button
+        onClick={() => !disabled && onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' })}
+        style={btnStyle(isEntregado, '#3b82f6')}
+        title={status === 'observado' ? 'Marcar como solventado' : 'Marcar como entregado'}
+      >
+        {status === 'observado' ? 'Solventar' : 'Entregar'}
+      </button>
+      
+      <button
+        onClick={() => !disabled && onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' })}
+        style={btnStyle(isNoAplica, '#3b82f6')}
+      >
+        No aplica
+      </button>
+
+      <button
+        onClick={() => !disabled && onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' })}
+        style={btnStyle(isPendiente, '#6b7280')}
+      >
+        Pendiente
+      </button>
     </div>
   );
 };
@@ -144,13 +158,18 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     }
   };
 
-  const handleKeyDown = (e, docId) => {
+  const handleKeyDown = (e, doc) => {
     if (!isAdmin) return;
     const key = e.key.toLowerCase();
     const statusMap = { '1': 'verificado', '2': 'no_aplica', '3': 'observado', '4': 'no_entregado', '5': 'pendiente' };
 
     if (statusMap[key]) {
-      handleAdminToggle(docId, { estado_verificacion: statusMap[key] });
+      const newStatus = statusMap[key];
+      // Si no está capturado por el plantel, solo permitir no_entregado y pendiente
+      if (!doc.capturado_plantel && !['no_entregado', 'pendiente'].includes(newStatus)) {
+        return;
+      }
+      handleAdminToggle(doc.documento_id, { estado_verificacion: newStatus });
     }
   };
 
@@ -185,7 +204,7 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     const isLockedForPlantel = doc.estado_verificacion === 'verificado';
     return (
       <div 
-        onKeyDown={(e) => handleKeyDown(e, doc.documento_id)} 
+        onKeyDown={(e) => handleKeyDown(e, doc)} 
         tabIndex="0" 
         style={{ display: 'flex', alignItems: 'center', gap: '8px', outline: 'none' }}
       >
@@ -202,6 +221,7 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
               value={doc.estado_verificacion} 
               onChange={(val) => handleAdminToggle(doc.documento_id, { estado_verificacion: val })}
               disabled={!doc.capturado_plantel}
+              restricted={!doc.capturado_plantel}
             />
           </>
         ) : (
@@ -258,7 +278,7 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
           {documentos.map(doc => (
             <li 
               key={doc.id} 
-              onKeyDown={(e) => handleKeyDown(e, doc.documento_id)}
+              onKeyDown={(e) => handleKeyDown(e, doc)}
               tabIndex="0"
               style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px', outline: 'none' }}
             >

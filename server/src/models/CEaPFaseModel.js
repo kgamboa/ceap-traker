@@ -67,51 +67,49 @@ class CEaPFaseModel {
   }
 
   static async update(ceapFaseId, datos) {
-    const {
-      estado,
-      fecha_conclusión,
-      fecha_estimada,
-      observaciones,
-      completado,
-      evidencias_verificadas,
-      ultima_actualizacion_usuario,
-      ultima_actualizacion_admin,
-      ultima_actualizacion_documento,
-      isAdmin = false
-    } = datos;
+    const { isAdmin = false } = datos;
+    
+    const updatableFields = [
+      'estado', 'fecha_conclusión', 'fecha_estimada', 'observaciones', 
+      'completado', 'evidencias_verificadas', 'ultima_actualizacion_documento'
+    ];
 
-    // Determine timestamp columns based on admin status
-    const updateTimestamp = isAdmin ? 'ultima_actualizacion_admin' : 'ultima_actualizacion_usuario';
+    let setClauses = [];
+    let values = [];
+    let i = 1;
 
-    const result = await pool.query(
-      `UPDATE ceap_fases
-       SET estado = COALESCE($1, estado),
-           fecha_conclusión = COALESCE($2, fecha_conclusión),
-           fecha_estimada = COALESCE($3, fecha_estimada),
-           observaciones = COALESCE($4, observaciones),
-           completado = COALESCE($5, completado),
-           fecha_completado = CASE WHEN $5 = true THEN CURRENT_DATE ELSE fecha_completado END,
-           evidencias_verificadas = COALESCE($6, evidencias_verificadas),
-           fecha_verificacion = CASE WHEN $6 = true THEN CURRENT_DATE ELSE fecha_verificacion END,
-           ultima_actualizacion_usuario = CASE WHEN $9::boolean = false THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_usuario END,
-           ultima_actualizacion_admin = CASE WHEN $9::boolean = true THEN CURRENT_TIMESTAMP ELSE ultima_actualizacion_admin END,
-           ultima_actualizacion_documento = COALESCE($7, ultima_actualizacion_documento),
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $8
-       RETURNING *`,
-      [
-        estado,
-        fecha_conclusión,
-        fecha_estimada,
-        observaciones,
-        completado,
-        evidencias_verificadas,
-        ultima_actualizacion_documento,
-        ceapFaseId,
-        isAdmin
-      ]
-    );
+    for (const field of updatableFields) {
+      if (datos.hasOwnProperty(field)) {
+        let val = datos[field];
+        // Convertir strings vacíos a null para campos que lo requieren (fechas y observaciones)
+        if (val === '' && ['fecha_conclusión', 'fecha_estimada', 'observaciones'].includes(field)) {
+          val = null;
+        }
+        setClauses.push(`${field} = $${i++}`);
+        values.push(val);
+      }
+    }
 
+    // Casos especiales para fechas derivadas del estado
+    if (datos.hasOwnProperty('completado')) {
+      setClauses.push(`fecha_completado = CASE WHEN completado = true THEN CURRENT_DATE ELSE fecha_completado END`);
+    }
+    if (datos.hasOwnProperty('evidencias_verificadas')) {
+      setClauses.push(`fecha_verificacion = CASE WHEN evidencias_verificadas = true THEN CURRENT_DATE ELSE fecha_verificacion END`);
+    }
+
+    if (isAdmin) {
+      setClauses.push(`ultima_actualizacion_admin = CURRENT_TIMESTAMP`);
+    } else {
+      setClauses.push(`ultima_actualizacion_usuario = CURRENT_TIMESTAMP`);
+    }
+
+    setClauses.push(`updated_at = CURRENT_TIMESTAMP`);
+    
+    values.push(ceapFaseId);
+    const query = `UPDATE ceap_fases SET ${setClauses.join(', ')} WHERE id = $${i} RETURNING *`;
+    
+    const result = await pool.query(query, values);
     return result.rows[0];
   }
 
