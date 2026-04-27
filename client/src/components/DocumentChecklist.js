@@ -20,6 +20,14 @@ const AdminToggleButtons = ({ doc, onChange }) => {
     whiteSpace: 'nowrap'
   });
 
+  const handleStatusClick = (newStatus) => {
+    if (status === newStatus) {
+      onChange({ estado_verificacion: 'pendiente' });
+    } else {
+      onChange({ estado_verificacion: newStatus });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', animation: 'fadeInUp 0.3s ease', maxWidth: '300px' }}>
       <button 
@@ -27,16 +35,15 @@ const AdminToggleButtons = ({ doc, onChange }) => {
         style={btnStyle(isCaptured, '#10b981')}
         title="Cambiar estado de captura"
       >
-        {isCaptured ? 'CAPTURADO' : 'SIN CAPTURA'}
+        {isCaptured ? 'PLANTEL' : 'NO PLANTEL'}
       </button>
       
       <div style={{ width: '1px', height: '16px', backgroundColor: '#e5e7eb' }} />
       
-      <button onClick={() => onChange({ estado_verificacion: 'verificado' })} style={btnStyle(status === 'verificado', '#10b981')}>VERIFICAR</button>
-      <button onClick={() => onChange({ estado_verificacion: 'observado' })} style={btnStyle(status === 'observado', '#f59e0b')}>OBSERVAR</button>
-      <button onClick={() => onChange({ estado_verificacion: 'no_aplica' })} style={btnStyle(status === 'no_aplica', '#3b82f6')}>N/A</button>
-      <button onClick={() => onChange({ estado_verificacion: 'no_entregado' })} style={btnStyle(status === 'no_entregado', '#ef4444')}>NO ENTR.</button>
-      <button onClick={() => onChange({ estado_verificacion: 'pendiente' })} style={btnStyle(status === 'pendiente', '#6b7280')}>PEND.</button>
+      <button onClick={() => handleStatusClick('verificado')} style={btnStyle(status === 'verificado', '#10b981')}>VERIFICAR</button>
+      <button onClick={() => handleStatusClick('observado')} style={btnStyle(status === 'observado', '#f59e0b')}>OBSERVAR</button>
+      <button onClick={() => handleStatusClick('no_aplica')} style={btnStyle(status === 'no_aplica', '#3b82f6')}>N/A</button>
+      <button onClick={() => handleStatusClick('no_entregado')} style={btnStyle(status === 'no_entregado', '#ef4444')}>NO ENTR.</button>
       
       <style>{`
         @keyframes fadeInUp {
@@ -70,29 +77,39 @@ const PlantelToggleButtons = ({ doc, onChange, disabled }) => {
 
   const isEntregado = isCaptured && status === 'pendiente';
   const isNoAplica = status === 'no_aplica';
-  const isPendiente = !isCaptured && (status === 'pendiente' || status === 'no_entregado');
+
+  const handleEntregar = () => {
+    if (disabled) return;
+    if (isEntregado || (status === 'observado' && isCaptured)) {
+      onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
+    } else {
+      onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' });
+    }
+  };
+
+  const handleNoAplica = () => {
+    if (disabled) return;
+    if (isNoAplica) {
+      onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' });
+    } else {
+      onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' });
+    }
+  };
 
   return (
     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', animation: 'fadeInUp 0.3s ease' }}>
       <button
-        onClick={() => !disabled && onChange({ capturado_plantel: true, estado_verificacion: 'pendiente' })}
+        onClick={handleEntregar}
         style={btnStyle(isEntregado || (status === 'observado' && isCaptured), isEntregado ? '#3b82f6' : status === 'observado' ? '#f59e0b' : '#3b82f6')}
       >
         {status === 'observado' ? 'Solventar' : 'Entregar'}
       </button>
       
       <button
-        onClick={() => !disabled && onChange({ capturado_plantel: true, estado_verificacion: 'no_aplica' })}
+        onClick={handleNoAplica}
         style={btnStyle(isNoAplica, '#3b82f6')}
       >
         No aplica
-      </button>
-
-      <button
-        onClick={() => !disabled && onChange({ capturado_plantel: false, estado_verificacion: 'pendiente' })}
-        style={btnStyle(isPendiente, '#6b7280')}
-      >
-        Pendiente
       </button>
     </div>
   );
@@ -201,6 +218,24 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
 
     const activeCategories = categories.filter(c => documentos.some(d => d.documento_nombre.includes(c)));
     return { type: 'matrix', data: docsByRow, categories: activeCategories };
+  };
+
+  const renderDocControls = (doc) => {
+    if (!doc) return <div style={{ opacity: 0.1 }}>-</div>;
+    return (
+      <div 
+        tabIndex="0" 
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', outline: 'none' }}
+      >
+        <input 
+          type="checkbox" 
+          title={doc.capturado_plantel ? "Marcar como NO capturado" : "Marcar como capturado"}
+          checked={doc.capturado_plantel} 
+          onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
+          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+        />
+      </div>
+    );
   };
 
   if (loading) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Cargando documentos...</div>;
