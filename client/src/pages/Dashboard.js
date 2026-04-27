@@ -339,12 +339,18 @@ const Dashboard = () => {
 
     // Filtro por fecha de revisión (admin)
     if (showNoRevisados) {
-      const filterDate = new Date(filterFechaRevision);
+      // Parsear la fecha del filtro manualmente para evitar problemas de zona horaria
+      const [y, m, d] = filterFechaRevision.split('-').map(Number);
+      const filterDateStart = new Date(y, m - 1, d); // Inicio del día seleccionado
+      
       filtered = filtered.filter(p => {
         const ceap = ceapMap[p.id];
-        if (!ceap || !ceap.ultima_actualizacion_admin) return true; // Si no hay revisión, entra en el filtro
+        // Si no hay CEAP o no tiene fecha de revisión admin, se considera "no revisado"
+        if (!ceap || !ceap.ultima_actualizacion_admin) return true;
+        
         const lastAdminDate = new Date(ceap.ultima_actualizacion_admin);
-        return lastAdminDate < filterDate;
+        // Se muestra si la última revisión fue ANTES del día seleccionado
+        return lastAdminDate < filterDateStart;
       });
     }
 

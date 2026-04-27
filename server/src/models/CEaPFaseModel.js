@@ -215,12 +215,21 @@ class CEaPFaseModel {
           }
         }
 
+        let adminClause = "";
+        if (isAdmin) {
+          adminClause = ", ultima_actualizacion_admin = CURRENT_TIMESTAMP";
+        } else {
+          adminClause = ", ultima_actualizacion_usuario = CURRENT_TIMESTAMP";
+        }
+
         await pool.query(
           `UPDATE ceap_fases 
            SET estado = $1::text, 
                completado = $2,
                fecha_conclusión = CASE WHEN $1::text = 'completado' THEN COALESCE(fecha_conclusión, CURRENT_DATE) ELSE null END,
+               ultima_actualizacion_documento = CURRENT_TIMESTAMP,
                updated_at = CURRENT_TIMESTAMP
+               ${adminClause}
            WHERE id = $3::uuid`,
           [newState, isCompleted, ceapFaseId]
         );
@@ -247,6 +256,14 @@ class CEaPFaseModel {
        RETURNING *`,
       [ceapFaseId, usuario_nombre, es_admin, mensaje]
     );
+
+    // Actualizar fecha de revisión en la fase
+    if (es_admin) {
+      await pool.query('UPDATE ceap_fases SET ultima_actualizacion_admin = CURRENT_TIMESTAMP WHERE id = $1', [ceapFaseId]);
+    } else {
+      await pool.query('UPDATE ceap_fases SET ultima_actualizacion_usuario = CURRENT_TIMESTAMP WHERE id = $1', [ceapFaseId]);
+    }
+
     return result.rows[0];
   }
 
@@ -255,6 +272,12 @@ class CEaPFaseModel {
       'DELETE FROM ceap_fase_observaciones WHERE id = $1 RETURNING *',
       [observacionId]
     );
+
+    if (result.rows[0]) {
+      // Siempre lo contamos como acción administrativa si es borrar observación
+      // (asumimos que el flujo principal de borrado es por admin o bajo supervisión)
+      await pool.query('UPDATE ceap_fases SET ultima_actualizacion_admin = CURRENT_TIMESTAMP WHERE id = $1', [result.rows[0].ceap_fase_id]);
+    }
     return result.rows[0];
   }
 }
