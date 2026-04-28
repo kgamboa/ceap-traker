@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import PlanteleDetail from './pages/PlanteleDetail';
 import { useRole } from './hooks/useRole';
+import { SYSTEM_VERSION } from './version';
 import './App.css';
 
 function App() {
@@ -80,7 +81,7 @@ function App() {
         </main>
 
         <footer className="app-footer">
-          <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP</p>
+          <p>© 2026 DGETI Guanajuato - Sistema de Seguimiento CEAP | <span className="app-version">v{SYSTEM_VERSION}</span></p>
         </footer>
       </div>
     </Router>

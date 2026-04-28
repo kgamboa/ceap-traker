@@ -112,6 +112,12 @@ code {
   margin-top: 2rem;
 }
 
+.app-version {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
 /* Buttons */
 .btn {
   padding: 0.5rem 1rem;
