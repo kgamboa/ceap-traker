@@ -4,7 +4,7 @@ import { ceapService, planteleService, exportService } from '../services/api';
 import { FaseStatus, ProgressBar } from '../components/SharedComponents';
 import DocumentChecklist from '../components/DocumentChecklist';
 import ObservacionesChat from '../components/ObservacionesChat';
-import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2, Copy, Check } from 'lucide-react';
+import { ChevronLeft, Save, Download, AlertCircle, Edit2, Plus, X, Trash2 } from 'lucide-react';
 import { useRole } from '../hooks/useRole';
 import '../styles/PlanteleDetail.css';
 

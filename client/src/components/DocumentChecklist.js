@@ -220,23 +220,6 @@ const DocumentChecklist = ({ faseId, ceapId, isAdmin, onChange }) => {
     return { type: 'matrix', data: docsByRow, categories: activeCategories };
   };
 
-  const renderDocControls = (doc) => {
-    if (!doc) return <div style={{ opacity: 0.1 }}>-</div>;
-    return (
-      <div 
-        tabIndex="0" 
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', outline: 'none' }}
-      >
-        <input 
-          type="checkbox" 
-          title={doc.capturado_plantel ? "Marcar como NO capturado" : "Marcar como capturado"}
-          checked={doc.capturado_plantel} 
-          onChange={(e) => handleAdminToggle(doc.documento_id, { capturado_plantel: e.target.checked })}
-          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-        />
-      </div>
-    );
-  };
 
   if (loading) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Cargando documentos...</div>;
   if (documentos.length === 0) return <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>No hay documentos requeridos.</div>;

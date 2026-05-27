@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
 import DashboardTable from '../components/DashboardTable';
 import { Download, BarChart3, AlertCircle, Plus, X, Search, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
+import { Download, BarChart3, AlertCircle, Plus, X, Search } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,20 +25,6 @@ import '../styles/Dashboard.css';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, LineController, BarElement, BarController, Title, Tooltip, Legend, ChartDataLabels);
 
-const highlightZeroPlugin = {
-  id: 'highlightZero',
-  beforeDatasetsDraw(chart) {
-    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
-    ctx.save();
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.moveTo(x.getPixelForValue(0), top);
-    ctx.lineTo(x.getPixelForValue(0), bottom);
-    ctx.stroke();
-    ctx.restore();
-  }
-};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -120,7 +107,7 @@ const Dashboard = () => {
     if (showNoRevisados) {
       const [y, m, d] = filterFechaRevision.split('-').map(Number);
       const filterDateStart = new Date(y, m - 1, d);
-      
+
       filtered = filtered.filter(p => {
         const ceap = ceapMap[p.id];
         if (!ceap || !ceap.ultima_actualizacion_admin) return true;
@@ -235,17 +222,17 @@ const Dashboard = () => {
 
       <div className="stats-grid">
         <StatCard title="Total Planteles" value={stats.totalPlanteles || 0} icon={<BarChart3 size={24} />} color="blue" />
-        <StatCard 
-          title="Planteles Completados" 
-          value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0} (${stats.totalPlanteles > 0 ? Math.round((stats.planteleCompletados / stats.totalPlanteles) * 100) : 0}%)`} 
-          icon={<BarChart3 size={24} />} 
-          color="green" 
+        <StatCard
+          title="Planteles Completados"
+          value={`${stats.planteleCompletados || 0}/${stats.totalPlanteles || 0} (${stats.totalPlanteles > 0 ? Math.round((stats.planteleCompletados / stats.totalPlanteles) * 100) : 0}%)`}
+          icon={<BarChart3 size={24} />}
+          color="green"
         />
-        <StatCard 
-          title="Avance Global" 
-          value={`${stats.porcentajeGlobal || 0}%`} 
-          icon={<BarChart3 size={24} />} 
-          color="purple" 
+        <StatCard
+          title="Avance Global"
+          value={`${stats.porcentajeGlobal || 0}%`}
+          icon={<BarChart3 size={24} />}
+          color="purple"
           subtitle={`Total Captura: ${stats.avanceCapturaGlobal || 0}% / Total Verif: ${stats.avanceVerificacionGlobal || 0}%`}
         />
       </div>
@@ -255,21 +242,21 @@ const Dashboard = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Estatus por Plantel</h2>
             <div style={{ display: 'flex', backgroundColor: '#f3f4f6', padding: '4px', borderRadius: '6px' }}>
-              <button 
-                onClick={() => setViewMode('cards')} 
+              <button
+                onClick={() => setViewMode('cards')}
                 style={{ ...filterButtonStyle(viewMode === 'cards'), display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 <LayoutGrid size={16} /> Tarjetas
               </button>
-              <button 
-                onClick={() => setViewMode('table')} 
+              <button
+                onClick={() => setViewMode('table')}
                 style={{ ...filterButtonStyle(viewMode === 'table'), display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 <TableIcon size={16} /> Tabla
               </button>
             </div>
           </div>
-          
+
           <div className="filters-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div className="search-box" style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
@@ -303,8 +290,8 @@ const Dashboard = () => {
               {isAdmin && (
                 <div style={{ display: 'flex', gap: '0.25rem', backgroundColor: '#f3f4f6', padding: '4px', borderRadius: '6px' }}>
                   <button onClick={() => setFilterStatus('todo')} style={filterButtonStyle(filterStatus === 'todo')}>Todos Estatus</button>
-                  <button 
-                    onClick={() => setFilterStatus('pendiente_revision')} 
+                  <button
+                    onClick={() => setFilterStatus('pendiente_revision')}
                     style={filterButtonStyle(filterStatus === 'pendiente_revision')}
                   >
                     Pendiente Revisión
