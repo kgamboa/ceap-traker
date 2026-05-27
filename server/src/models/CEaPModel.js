@@ -105,7 +105,17 @@ class CEaPModel {
             'avance_verificacion', COALESCE((
               SELECT ROUND((SUM(CASE WHEN d.estado_verificacion IN ('verificado', 'no_aplica') THEN 1.0 WHEN d.estado_verificacion = 'observado' THEN 0.5 ELSE 0 END)::float / NULLIF(COUNT(*), 0)) * 100)
               FROM ceap_fase_documentos d WHERE d.ceap_fase_id = cf.id
-            ), 0)
+            ), 0),
+            'documentos', COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'clave', d.clave_documento,
+                  'capturado', d.capturado_plantel,
+                  'verificado', d.estado_verificacion
+                )
+              )
+              FROM ceap_fase_documentos d WHERE d.ceap_fase_id = cf.id
+            ), '[]'::json)
           )
         ) FILTER (WHERE cf.id IS NOT NULL) as fases
        FROM ceaps_recientes cr

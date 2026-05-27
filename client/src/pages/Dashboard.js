@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
-import { Download, BarChart3, AlertCircle, Plus, X, Search } from 'lucide-react';
+import DashboardTable from '../components/DashboardTable';
+import { Download, BarChart3, AlertCircle, Plus, X, Search, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -55,6 +56,7 @@ const Dashboard = () => {
   const [showNoRevisados, setShowNoRevisados] = useState(false);
   const [filterFechaRevision, setFilterFechaRevision] = useState(new Date().toISOString().split('T')[0]);
   const [filterStatus, setFilterStatus] = useState('todo'); // todo, pendiente_revision
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
   const [newPlantelData, setNewPlantelData] = useState({
     nombre: '',
     codigo: '',
@@ -250,7 +252,23 @@ const Dashboard = () => {
 
       <div className="planteles-section" style={{ marginTop: '2rem' }}>
         <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>Estatus por Plantel</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Estatus por Plantel</h2>
+            <div style={{ display: 'flex', backgroundColor: '#f3f4f6', padding: '4px', borderRadius: '6px' }}>
+              <button 
+                onClick={() => setViewMode('cards')} 
+                style={{ ...filterButtonStyle(viewMode === 'cards'), display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <LayoutGrid size={16} /> Tarjetas
+              </button>
+              <button 
+                onClick={() => setViewMode('table')} 
+                style={{ ...filterButtonStyle(viewMode === 'table'), display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <TableIcon size={16} /> Tabla
+              </button>
+            </div>
+          </div>
           
           <div className="filters-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -297,11 +315,15 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="planteles-grid">
-          {filteredPlanteles.map(plantel => (
-            <PlanteleCard key={plantel.id} plantel={plantel} ceap={ceapMap[plantel.id]} onClick={() => handlePlanteleSelect(plantel)} />
-          ))}
-        </div>
+        {viewMode === 'cards' ? (
+          <div className="planteles-grid">
+            {filteredPlanteles.map(plantel => (
+              <PlanteleCard key={plantel.id} plantel={plantel} ceap={ceapMap[plantel.id]} onClick={() => handlePlanteleSelect(plantel)} />
+            ))}
+          </div>
+        ) : (
+          <DashboardTable planteles={filteredPlanteles} ceapMap={ceapMap} />
+        )}
         {filteredPlanteles.length === 0 && (
           <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>No se encontraron planteles</div>
         )}
