@@ -4,7 +4,6 @@ import { ceapService, planteleService, exportService } from '../services/api';
 import { StatCard, PlanteleCard } from '../components/SharedComponents';
 import DashboardTable from '../components/DashboardTable';
 import { Download, BarChart3, AlertCircle, Plus, X, Search, LayoutGrid, Table as TableIcon } from 'lucide-react';
-import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
