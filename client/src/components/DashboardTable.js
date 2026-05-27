@@ -31,16 +31,42 @@ const DashboardTable = ({ planteles, ceapMap }) => {
   };
 
   const getDocumentStatus = (ceap, docId) => {
-    if (!ceap || !ceap.fases) return 'NO';
+    if (!ceap || !ceap.fases) return { text: 'Falta', color: 'red' };
+    
     for (const fase of ceap.fases) {
       if (fase.documentos) {
         const doc = fase.documentos.find(d => d.clave === docId);
-        if (doc && doc.capturado) {
-          return 'Entregado';
+        if (doc) {
+          if (!doc.capturado) {
+            return { text: 'Falta', color: 'red' };
+          }
+          
+          switch (doc.verificado) {
+            case 'verificado':
+              return { text: 'Aceptado', color: 'green' };
+            case 'observado':
+              return { text: 'Corregir', color: 'orange' };
+            case 'no_aplica':
+              return { text: 'N/A', color: 'gray' };
+            case 'pendiente':
+            default:
+              return { text: 'Revisión', color: 'blue' };
+          }
         }
       }
     }
-    return 'NO';
+    return { text: 'Falta', color: 'red' };
+  };
+
+  const getBadgeStyle = (color) => {
+    switch (color) {
+      case 'green': return { bg: '#dcfce7', text: '#166534', icon: '✓' };
+      case 'orange': return { bg: '#ffedd5', text: '#9a3412', icon: '⚠️' };
+      case 'blue': return { bg: '#dbeafe', text: '#1e40af', icon: '⏳' };
+      case 'gray': return { bg: '#f3f4f6', text: '#4b5563', icon: '➖' };
+      case 'red': 
+      default: return { bg: '#fee2e2', text: '#991b1b', icon: '✕' };
+    }
   };
 
   return (
@@ -81,20 +107,29 @@ const DashboardTable = ({ planteles, ceapMap }) => {
                 </td>
                 
                 {DOCUMENTOS_COLUMNS.map(col => {
-                  const status = getDocumentStatus(ceap, col.id);
-                  const isEntregado = status === 'Entregado';
+                  const statusInfo = getDocumentStatus(ceap, col.id);
+                  const style = getBadgeStyle(statusInfo.color);
+                  
                   return (
-                    <td key={col.id} style={{ padding: '8px', textAlign: 'center', borderLeft: '1px solid #e5e7eb' }}>
-                      <span style={{ 
-                        padding: '4px 8px', 
-                        borderRadius: '9999px', 
+                    <td key={col.id} style={{ padding: '4px', textAlign: 'center', borderLeft: '1px solid #e5e7eb' }}>
+                      <div style={{ 
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                        padding: '4px 6px', 
+                        borderRadius: '6px', 
                         fontSize: '10px',
                         fontWeight: 'bold',
-                        backgroundColor: isEntregado ? '#dcfce7' : '#fee2e2',
-                        color: isEntregado ? '#166534' : '#991b1b'
-                      }}>
-                        {status}
-                      </span>
+                        backgroundColor: style.bg,
+                        color: style.text,
+                        whiteSpace: 'nowrap',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }} title={`${col.label}: ${statusInfo.text}`}>
+                        <span>{style.icon}</span>
+                        <span>{statusInfo.text}</span>
+                      </div>
                     </td>
                   );
                 })}
