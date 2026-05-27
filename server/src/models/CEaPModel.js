@@ -109,12 +109,14 @@ class CEaPModel {
             'documentos', COALESCE((
               SELECT json_agg(
                 json_build_object(
-                  'clave', d.clave_documento,
+                  'clave', cat.clave,
                   'capturado', d.capturado_plantel,
                   'verificado', d.estado_verificacion
                 )
               )
-              FROM ceap_fase_documentos d WHERE d.ceap_fase_id = cf.id
+              FROM ceap_fase_documentos d 
+              JOIN ceap_documentos_catalog cat ON d.documento_id = cat.id
+              WHERE d.ceap_fase_id = cf.id
             ), '[]'::json)
           )
         ) FILTER (WHERE cf.id IS NOT NULL) as fases
